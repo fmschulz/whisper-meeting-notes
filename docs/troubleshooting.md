@@ -27,6 +27,10 @@ sudo pacman -S base-devel git
 sudo pacman -S <package-name>
 ```
 
+#### Personal App Configs Missing After running ./apply-configs.sh
+1. Earlier revisions of the script mirrored the entire ~/.config tree and deleted unmanaged app data. Restore the affected directory from backup if you have one available (e.g. `~/.config/chromium`).
+2. Re-run the latest `./apply-configs.sh`; it now syncs only the tracked config folders and preserves personal app data for Chromium, Firefox, VS Code, Obsidian, and others.
+
 ### Hyprland Issues
 
 #### Hyprland Won't Start
@@ -116,6 +120,16 @@ sudo pacman -S <package-name>
    pulseaudio --check -v  # Should show "not running"
    ```
 
+#### Volume Keys Change the Wrong Output
+1. When a dock is attached, WirePlumber keeps the dock's digital sink as the default even if the laptop speakers are active. The bundled `~/.config/scripts/volume-control.sh` now promotes the internal codec (`alsa_output.pci-0000_c1_00.6.analog-stereo`) whenever it isn't suspended and then adjusts volume or mute.
+2. Re-run `./apply-configs.sh` (or copy the file manually) so Hyprland picks up the new key bindings:
+   ```bash
+   ~/.config/scripts/volume-control.sh up
+   ~/.config/scripts/volume-control.sh down
+   ~/.config/scripts/volume-control.sh mute
+   ```
+3. Confirm the internal sink was selected by checking `pactl info`; it should now show `Default Sink: alsa_output.pci-0000_c1_00.6.analog-stereo` while the speakers are in use.
+
 ### Display Issues
 
 #### Wrong Resolution/Scaling
@@ -139,6 +153,51 @@ sudo pacman -S <package-name>
    ```bash
    wlr-randr
    ```
+
+#### Clamshell Mode (Docked)
+1. Tell systemd-logind to ignore the lid switch while docked so the laptop stays awake:
+   ```bash
+   sudo mkdir -p /etc/systemd/logind.conf.d
+   printf "[Login]
+HandleLidSwitch=ignore
+HandleLidSwitchDocked=ignore
+" | sudo tee /etc/systemd/logind.conf.d/ignore-lid.conf
+   sudo systemctl restart systemd-logind
+   ```
+
+2. Re-run `./apply-configs.sh` (or copy manually) so `~/.config/scripts/clamshell-mode.sh` is present and executable. Hyprland auto-starts it via `exec-once` and you can confirm with:
+   ```bash
+   ps -C clamshell-mode.sh
+   ```
+
+#### Cursor Hard to See on Bright Terminals
+1. Kitty defaults to switching the pointer to a thin I-beam while hovering text. Apply the updated config (or add these lines manually) so an arrow is used instead:
+   ```conf
+   default_pointer_shape arrow
+   pointer_shape_when_grabbed arrow
+   pointer_shape_when_dragging arrow arrow
+   ```
+2. Re-run `./apply-configs.sh` or apply on the fly:
+   ```bash
+   kitty @ set-config default_pointer_shape=arrow pointer_shape_when_grabbed=arrow pointer_shape_when_dragging="arrow arrow"
+   ```
+
+3. Close the lid. All workspaces assigned to the internal panel move to the focused external display and the internal panel is disabled. Reopening the lid re-enables the panel and returns those workspaces.
+
+### Productivity Apps
+
+#### Zoom Workplace Setup
+1. Ensure `zoom` is listed in `packages/aur-packages.txt`, then install via `yay -S zoom` or rerun `./install-prereqs.sh` to pull AUR updates.
+2. Launch Zoom through `~/.config/scripts/zoom-workplace.sh` so Wayland-friendly environment variables are set. You can create a launcher with `Exec=~/.config/scripts/zoom-workplace.sh` if you prefer a menu entry.
+3. For screen sharing, verify the PipeWire portal stack is running:
+   ```bash
+   systemctl --user status xdg-desktop-portal xdg-desktop-portal-wlr
+   ```
+   Restart them after installing Zoom if sharing fails:
+   ```bash
+   systemctl --user restart xdg-desktop-portal xdg-desktop-portal-wlr
+   ```
+4. Zoom still offers an XWayland fallback. If the Wayland session misbehaves, run `QT_QPA_PLATFORM=xcb ~/.config/scripts/zoom-workplace.sh` to force the legacy path.
 
 ### Theme Issues
 

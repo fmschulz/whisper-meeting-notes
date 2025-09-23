@@ -156,6 +156,11 @@ print_step "Enabling system services"
 systemctl --user enable --now pipewire pipewire-pulse wireplumber
 sudo systemctl enable bluetooth
 sudo systemctl enable NetworkManager
+sudo systemctl enable --now tailscaled
+
+# Configure suspend mode
+print_step "Configuring sleep mode"
+sudo bash "$SCRIPT_DIR/scripts/setup/configure-sleep.sh"
 
 # Set up fonts
 print_step "Refreshing font cache"

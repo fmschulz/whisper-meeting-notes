@@ -31,3 +31,4 @@ greetd
 frogmouth
 duckdb
 neo4j-community
+zoom

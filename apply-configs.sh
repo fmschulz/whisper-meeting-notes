@@ -25,10 +25,20 @@ log "Applying Hyprland design configs (no package installs)"
 # Ensure target dirs
 mkdir -p ~/.config ~/.local/bin ~/Pictures/wallpapers ~/Pictures/screenshots
 
-# Copy configs
+# Copy configs while preserving unmanaged app data
 if [[ -d "${SCRIPT_DIR}/configs" ]]; then
-  rsync -a --delete "${SCRIPT_DIR}/configs/" ~/.config/
-  ok "Configs synced to ~/.config"
+  shopt -s dotglob nullglob
+  for src in "${SCRIPT_DIR}/configs/"*; do
+    name="$(basename "$src")"
+    if [[ -d "$src" ]]; then
+      mkdir -p "${HOME}/.config/${name}"
+      rsync -a --delete "$src/" "${HOME}/.config/${name}/"
+    else
+      rsync -a "$src" "${HOME}/.config/"
+    fi
+  done
+  shopt -u dotglob nullglob
+  ok "Configs synced to ~/.config (existing app data preserved)"
 else
   die "configs/ not found next to this script"
 fi
@@ -56,7 +66,7 @@ if [[ -f ~/.config/bash/bashrc ]]; then
     } >>~/.bashrc
     ok "Linked ~/.config/bash/bashrc from ~/.bashrc"
   else
-    ok "~/.bashrc already sources custom bashrc"
+    ok "${HOME}/.bashrc already sources custom bashrc"
   fi
 fi
 
