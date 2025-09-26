@@ -101,6 +101,12 @@ Details:
 - ✅ Theme switching for Kitty and VS Code
 - ✅ Custom scripts and aliases
 - ✅ Neo-brutalist color scheme throughout
+- ✅ USB-C storage auto-mounts to /mnt/usb{n} based on the physical port
+
+## Meeting Note Capture
+
+- **`configs/scripts/meeting-notes.sh`**: Desktop helper that transcribes an existing audio file with WhisperX and drops the Markdown notes next to the source recording. Dependencies install automatically on first run.
+- **Android app (`android/recording-transcription/`)**: Minimal Compose UI for capturing on-device audio (`rec-<timestamp>.m4a`) and optional transcripts (`<name>-transcript.txt`) stored together inside the app's recordings directory. Ideal for capturing meetings on the go and syncing the files back into your workstation workflow.
 
 ## Directory Structure
 
@@ -120,6 +126,9 @@ arch-hyprland-setup/
 ├── packages/               # Package lists
 │   ├── aur-packages.txt    # AUR packages to install
 │   └── pacman-packages.txt # Official repo packages
+├── android/recording-transcription/
+│   ├── app/                # Android Studio module (Compose UI, recorder, ViewModel)
+│   └── README.md           # Mobile app usage notes
 └── docs/                   # Documentation
     ├── keybindings.md      # Keyboard shortcuts reference
     └── troubleshooting.md  # Common issues and solutions
@@ -171,3 +180,26 @@ EOF
    ```
 
 5. **Reboot and log in via ReGreet** to start Hyprland.
+
+## USB-C Automount Configuration
+
+Plugging a USB mass-storage device into any USB-C port now mounts it automatically to `/mnt/usb{n}`, where `n` matches the physical port number derived from the system's USB topology. Key files installed by `setup.sh`:
+
+- Helper script: `/usr/local/lib/arch-hyprland/usb-automount.sh`
+- Config: `/etc/arch-hyprland/usb-automount.conf`
+- Udev rule: `/etc/udev/rules.d/99-arch-hyprland-usb-automount.rules`
+
+You can tweak the mount root, name prefix, owning user/group, and default mount options by editing the config file and reloading the udev rule:
+
+```bash
+sudoedit /etc/arch-hyprland/usb-automount.conf
+sudo udevadm control --reload
+```
+
+After plugging in a device, verify the selected port and mount point through the journal:
+
+```bash
+journalctl -t arch-usb-automount -n 20
+```
+
+Unmounting happens automatically on device removal. If a mount stays behind (e.g., device yanked mid-write), unmount manually with `sudo umount /mnt/usb{n}` before reconnecting.

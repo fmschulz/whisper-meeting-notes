@@ -1,2 +1,8 @@
 AGENTS.md
 setup_greetd.log
+# Meeting recordings and generated transcripts
+recordings/
+**/recordings/
+**/*.m4a
+**/*-notes-*.md
+**/*-transcript.txt

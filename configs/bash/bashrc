@@ -122,6 +122,11 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 # Python
 export PYTHONDONTWRITEBYTECODE=1
 
+# Android SDK
+export ANDROID_HOME="/opt/android-sdk"
+export ANDROID_SDK_ROOT="/opt/android-sdk"
+export PATH="$PATH:/opt/android-sdk/platform-tools:/opt/android-sdk/cmdline-tools/latest/bin"
+
 # ===== SHELL OPTIONS =====
 # History settings
 export HISTSIZE=10000
@@ -177,6 +182,6 @@ if test -n "$KITTY_INSTALLATION_DIR"; then
 fi
 
 # Welcome banner (once per session)
-if [[ $- == *i* ]] && [[ -x ~/.config/scripts/welcome.sh ]]; then
-  ~/.config/scripts/welcome.sh
+if [[ $- == *i* ]] && [[ -f ~/.config/scripts/welcome.sh ]]; then
+  source ~/.config/scripts/welcome.sh
 fi
