@@ -1,0 +1,27 @@
+[project]
+name = "meeting-notes-kit"
+version = "0.1.0"
+description = "High-fidelity meeting transcription with WhisperX diarisation."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+
+[tool.uv]
+package = true
+default-groups = ["base"]
+
+[tool.uv.pip]
+extra-index-url = ["https://download.pytorch.org/whl/cpu"]
+
+[dependency-groups]
+base = [
+    "torch @ https://download.pytorch.org/whl/cpu/torch-2.5.1%2Bcpu-cp312-cp312-linux_x86_64.whl",
+    "torchaudio @ https://download.pytorch.org/whl/cpu/torchaudio-2.5.1%2Bcpu-cp312-cp312-linux_x86_64.whl",
+    "whisperx>=3.1",
+    "pyannote.audio>=3.2",
+    "rich>=13.9",
+    "tabulate>=0.9",
+]
+
+
+[project.scripts]
+meeting-notes = "meeting_notes.main:main"

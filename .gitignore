@@ -1,0 +1,22 @@
+# Environment
+.venv/
+.env
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Audio captures and generated transcripts
+recordings/*
+!recordings/.gitkeep
+*.flac
+*.m4a
+*.wav
+*-notes-*.md
+*-transcript.txt
+
+# Tooling
+.DS_Store
+.idea/
+.vscode/
