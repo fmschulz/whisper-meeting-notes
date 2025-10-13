@@ -149,6 +149,87 @@ flowchart TD
 
 ## Remote GPU Workflow
 
+If you already have a Tailscale-accessible workstation with this toolkit checked out, you can ship audio straight to it with a single flag on any laptop (Linux/macOS/Windows):
+
+```bash
+./scripts/meeting-notes.sh --tailscale-host gpu-box recordings/all-hands.wav
+```
+
+PowerShell (Windows):
+
+```powershell
+./scripts/meeting-notes.ps1 --tailscale-host gpu-box recordings\all-hands.wav
+```
+
+The wrapper will:
+
+- stream the audio to the remote host over `tailscale ssh`
+- run `meeting-notes.sh` in the remote repository (propagating `HF_TOKEN`, `UV_TORCH_*`, etc.)
+- fetch the generated Markdown back to your machine
+- clean up temporary files on the remote side (set `--tailscale-keep` or `TAILSCALE_KEEP_REMOTE_JOB=1` to inspect them)
+- forward any additional CLI options (for example `--model`, `--beam-size`, or `-- --no-diarisation`).
+
+Configuration knobs:
+
+- `--tailscale-user` / `TAILSCALE_REMOTE_USER`: override the SSH user if it differs from your local login.
+- `--tailscale-repo` / `TAILSCALE_REMOTE_REPO`: path to the toolkit on the remote host (default: `~/whisper-meeting-notes`).
+- `--tailscale-workdir` / `TAILSCALE_REMOTE_WORKDIR`: directory to store per-run artefacts (default: `.remote-jobs` inside the repo).
+- `--remote-http` / `REMOTE_HTTP_ENDPOINT`: HTTPS endpoint for laptops that are not on the tailnet (see Public Uploads below).
+- `CUDNN_COMPAT_DIR` (optional): directory containing `libcudnn*_so.8` compatibility libraries; falls back to `~/.local/cudnn8/lib` and is added to `LD_LIBRARY_PATH` automatically.
+- `TAILSCALE_BIN`: point at a non-standard Tailscale binary location.
+
+The remote workflow requires `tailscale ssh` to be enabled on the workstation. Ensure the host has cloned this repo and can run `./scripts/meeting-notes.sh` locally before relying on the shortcut.
+
+You can still follow the manual rsync/ssh flow below if you prefer finer control.
+
+### CUDA 13 hosts (cuDNN notes)
+
+The alignment and diarisation pieces depend on ONNX Runtime wheels that still link against **cuDNN 8**. If your GPU workstation only has CUDA 13/cuDNN 9 on the system, provide a compatibility copy of the cuDNN 8 runtime libraries and the wrapper will pick them up via `CUDNN_COMPAT_DIR`:
+
+```bash
+# example: fetch cuDNN 8.9.7 for CUDA 12.2 and unpack locally
+curl -fLo /tmp/libcudnn8.deb \
+  https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/libcudnn8_8.9.7.29-1+cuda12.2_amd64.deb
+mkdir -p ~/.local/cudnn8/lib
+dpkg-deb -x /tmp/libcudnn8.deb /tmp/libcudnn8
+cp /tmp/libcudnn8/usr/lib/x86_64-linux-gnu/libcudnn*.so.* ~/.local/cudnn8/lib
+```
+
+By default `meeting-notes.sh` injects `~/.local/cudnn8/lib` into `LD_LIBRARY_PATH`; customise the location via `export CUDNN_COMPAT_DIR=/path/to/compat/lib`.
+
+### Public uploads (no client-side Tailscale)
+
+1. **Start the drop server on the GPU host** (typically bound to localhost):
+   ```bash
+   # quick start (auto configures tailscale serve + funnel)
+   uv run meeting-notes-drop-service --port 8040 --workers 1
+
+   # or, for manual control
+   export DROP_SERVER_PORT=8040              # optional; defaults to 8000
+   export DROP_MAX_WORKERS=1                # number of concurrent GPU jobs
+   uv run meeting-notes-drop-server
+   ```
+   Jobs are stored under `dropbox/jobs/<timestamp>-<jobid>` with logs in `dropbox/logs/`.
+
+2. **Expose it securely via Tailscale Funnel** (HTTPS only, no extra software on laptops):
+   ```bash
+   tailscale serve --https=443 / http://127.0.0.1:${DROP_SERVER_PORT:-8000}
+   tailscale funnel --https=443 on
+   ```
+   The host’s MagicDNS name (for example `https://jgi-ont.tailfd4067.ts.net`) becomes a public upload URL with TLS handled by Tailscale.
+   (Skip this step when using `meeting-notes-drop-service`, which runs the commands for you unless invoked with `--no-tailscale`.)
+
+3. **Run the CLI from any laptop without Tailscale installed**:
+   ```bash
+   ./scripts/meeting-notes.sh --remote-http https://jgi-ont.tailfd4067.ts.net recordings/all-hands.wav
+   ```
+   The wrapper streams the file via HTTPS, polls the job queue, and downloads the Markdown into `remote-results/<timestamp>-<stem>.md` on the caller’s machine.
+   A `log_url` is returned alongside the job ID for debugging (`dropbox/logs/<job>.log`).
+
+4. **Optional environment knobs**:
+   - Set `REMOTE_HTTP_ENDPOINT` on the laptop for a default endpoint (`--remote-http` becomes optional).
+   - The drop server honours `HF_TOKEN`, `CUDNN_COMPAT_DIR`, and `CUDA_VISIBLE_DEVICES` from its environment before launching `meeting-notes.sh`.
+
 1. Copy the recording to the GPU host:
    ```bash
    rsync -avP meeting.m4a gpu-host:~/meetings/

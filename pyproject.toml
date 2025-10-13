@@ -15,8 +15,13 @@ base = [
     "pyannote.audio>=3.2",
     "rich>=13.9",
     "tabulate>=0.9",
+    "fastapi>=0.111",
+    "uvicorn[standard]>=0.32",
+    "python-multipart>=0.0.9",
 ]
 
 
 [project.scripts]
 meeting-notes = "meeting_notes.main:main"
+meeting-notes-drop-server = "meeting_notes.drop_server:main"
+meeting-notes-drop-service = "meeting_notes.drop_service:main"
