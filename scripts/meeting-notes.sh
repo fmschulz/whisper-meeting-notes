@@ -10,6 +10,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 UV_PYTHON_VERSION="${UV_PYTHON_VERSION:-3.12}"
 TORCH_VARIANT="${UV_TORCH_VARIANT:-auto}"
 TORCH_SPEC="${UV_TORCH_SPEC:-torch==2.5.1}"
+TORCHAUDIO_SPEC="${UV_TORCHAUDIO_SPEC:-torchaudio==2.5.1}"
 
 if ! command -v uv >/dev/null 2>&1; then
   echo "uv is required. Install via \"pip install uv\" or your package manager." >&2
@@ -22,6 +23,8 @@ uv sync --project "${PROJECT_ROOT}" --python "${UV_PYTHON_VERSION}" --frozen 2>/
 
 ensure_torch() {
   local desired_variant="${TORCH_VARIANT}"
+  local os_name
+  os_name="$(uname -s)"
 
   if [[ "${desired_variant}" == "auto" ]]; then
     if command -v nvidia-smi >/dev/null 2>&1; then
@@ -34,7 +37,11 @@ ensure_torch() {
 
   case "${desired_variant}" in
     cpu)
-      torch_index="https://download.pytorch.org/whl/cpu"
+      if [[ "${os_name}" == "Darwin" ]]; then
+        torch_index="" # use default PyPI for macOS
+      else
+        torch_index="https://download.pytorch.org/whl/cpu"
+      fi
       ;;
     cu124)
       torch_index="https://download.pytorch.org/whl/cu124"
@@ -67,9 +74,14 @@ PY
     return 0
   fi
 
-  echo "Installing Torch (${desired_variant})…"
-  uv run --project "${PROJECT_ROOT}" --python "${UV_PYTHON_VERSION}" \
-    pip install --no-deps --upgrade "${TORCH_SPEC}" --index-url "${torch_index}"
+  echo "Installing Torch stack (${desired_variant})…"
+  if [[ -n "${torch_index:-}" ]]; then
+    uv run --project "${PROJECT_ROOT}" --python "${UV_PYTHON_VERSION}" \
+      pip install --no-deps --upgrade "${TORCH_SPEC}" "${TORCHAUDIO_SPEC}" --index-url "${torch_index}"
+  else
+    uv run --project "${PROJECT_ROOT}" --python "${UV_PYTHON_VERSION}" \
+      pip install --no-deps --upgrade "${TORCH_SPEC}" "${TORCHAUDIO_SPEC}"
+  fi
 }
 
 ensure_torch

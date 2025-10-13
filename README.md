@@ -16,6 +16,9 @@ Fast tooling for moderators who need high-quality transcripts and diarised notes
 git clone https://github.com/fmschulz/whisper-meeting-notes.git
 cd whisper-meeting-notes
 
+# install uv (once per machine)
+pipx install uv  # or: pip install uv
+
 # install dependencies into a managed environment (Python 3.12 is required)
 uv python install 3.12
 uv sync --python 3.12
@@ -23,13 +26,21 @@ uv sync --python 3.12
 # the first run of the wrapper will install PyTorch with the right variant automatically
 ```
 
+FFmpeg is required for audio I/O. Install via your OS package manager:
+
+- macOS: `brew install ffmpeg`
+- Windows: `winget install Gyan.FFmpeg` (or `choco install ffmpeg`)
+- Ubuntu/Debian: `sudo apt-get install ffmpeg`
+- Fedora: `sudo dnf install ffmpeg`
+- Arch: `sudo pacman -S ffmpeg`
+
 That creates `.venv/` (tracked via `uv.lock`) with all Python dependencies except PyTorch (handled by the shell wrapper).
 
 ## Installation Notes
 
-### Torch build selection
+### Torch build selection (cross‑platform)
 
-The Python dependencies managed by `uv sync` no longer include PyTorch—the shell wrapper will install the appropriate wheel on first run. By default it selects the **CPU-only** build so laptops avoid the huge CUDA downloads. If you need a GPU build, export `UV_TORCH_VARIANT` before running the script.
+PyTorch (and torchaudio) are installed by the wrapper on first run, so `uv sync` stays fast and portable across macOS, Linux, and Windows. By default it selects the **CPU-only** build to avoid large GPU downloads. If you need a GPU build, export `UV_TORCH_VARIANT` before running the script.
 
 Available variants:
 
@@ -37,6 +48,8 @@ Available variants:
 - `cpu` → CPU-only wheel from `https://download.pytorch.org/whl/cpu`
 - `cu124` → CUDA 12.4 wheels from `https://download.pytorch.org/whl/cu124`
 - `none` → skip automatic torch management (useful if you manage the wheel yourself)
+
+The wrapper installs both `torch` and `torchaudio` with matching variants. On macOS, the default PyPI index is used automatically (no special index needed). On Linux/Windows, CUDA wheels are fetched from the official PyTorch index when requested.
 
 Example GPU override:
 
@@ -68,6 +81,8 @@ The toolkit expects you to provide a recorded audio file. Common ways moderators
 
 - **Use the meeting platform’s recording feature.** Zoom, Meet, and Teams all export `.mp4`/`.m4a` files you can feed directly into the script.
 - **Use the bundled recorder.** Run `./scripts/record-audio.sh` to start an `ffmpeg` capture with sane defaults. Add `--list` to see available inputs (PulseAudio/PipeWire sources on Linux, AVFoundation devices on macOS). Press `Ctrl+C` to stop recording; files land in `recordings/`.
+ - **Use the bundled recorder (Linux/macOS).** Run `./scripts/record-audio.sh` to start an `ffmpeg` capture with sane defaults. Add `--list` to see available inputs (PulseAudio/PipeWire sources on Linux, AVFoundation devices on macOS). Press `Ctrl+C` to stop recording; files land in `recordings/`.
+ - **Windows recording.** Use the OS recorder, OBS, or Zoom/Teams export to produce `.wav`/`.m4a` and pass it to the script.
 - **Record locally on Wayland/Hyprland.** For quick captures, run `wf-recorder -a -f session.mka` (needs `wf-recorder` + `pamixer`). Press `Ctrl+C` when the meeting ends.
 - **Record from the command line with FFmpeg.** Example for PipeWire default sink and mic:
   ```bash
@@ -85,6 +100,16 @@ Record your meeting (any audio format supported by `ffmpeg`), then run:
 ```bash
 ./scripts/meeting-notes.sh path/to/recording.m4a
 ```
+
+Windows (PowerShell):
+
+```powershell
+./scripts/meeting-notes.ps1 path\to\recording.m4a
+```
+
+Global convenience (optional):
+- macOS/Linux: `ln -s "$(pwd)/scripts/meeting-notes.sh" "$HOME/bin/meeting-notes"` (ensure `$HOME/bin` is on `PATH`).
+- Windows: add the repo `scripts\` directory to `PATH`, or create a PowerShell function alias.
 
 Options:
 - The first positional argument is the audio file.
@@ -132,6 +157,7 @@ flowchart TD
    ```bash
    ssh gpu-host
    cd ~/whisper-meeting-notes
+   uv python install 3.12
    export UV_TORCH_VARIANT=cu124
    uv sync --python 3.12 --frozen
    ./scripts/meeting-notes.sh ~/meetings/meeting.m4a ~/meetings/meeting-notes.md
