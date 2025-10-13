@@ -62,10 +62,12 @@ def _create_job_dir(job_id: str) -> Path:
 
 def _run_transcription(job: Job) -> None:
     env = os.environ.copy()
-    env.setdefault("UV_TORCH_VARIANT", "cu124")
+    env.setdefault("MEETING_NOTES_ENV", env.get("MEETING_NOTES_ENV", "gpu"))
 
     command = [
-        str(PROJECT_ROOT / "scripts" / "meeting-notes.sh"),
+        sys.executable,
+        "-m",
+        "meeting_notes.main",
         str(job.audio_path),
         str(job.output_path),
     ]

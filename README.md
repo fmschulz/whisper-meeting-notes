@@ -1,79 +1,84 @@
 # Meeting Notes Kit
 
-Fast tooling for moderators who need high-quality transcripts and diarised notes during panel discussions or workshops. The kit wraps [WhisperX](https://github.com/m-bain/whisperX) with a `uv` managed Python environment and exports Markdown tables with per-speaker attribution.
+Fast tooling for moderators who need high-quality transcripts and diarised notes during panel discussions or workshops. The kit wraps [WhisperX](https://github.com/m-bain/whisperX) inside Pixi-managed environments and exports Markdown tables with per-speaker attribution.
 
 ## Features
 
 - Uses the **`large-v3`** Whisper model with beam search and temperature fallback for top accuracy.
 - Optional **speaker diarisation** via `pyannote.audio` when you provide a `HF_TOKEN` (multiple speakers are tagged automatically).
 - Generates Markdown with a timestamped table for easy paste into docs or wikis.
-- Works on laptops or remote GPU workstations; the shell helper calls `uv run` so dependencies stay inside a project-local virtual environment.
+- Works on laptops or remote GPU workstations; Pixi environments keep dependencies isolated per profile (capture, CPU, GPU).
 
-## Repository Setup
+## Environment Setup (Pixi)
 
 ```bash
 # clone the toolkit
 git clone https://github.com/fmschulz/whisper-meeting-notes.git
 cd whisper-meeting-notes
 
-# install uv (once per machine)
-pipx install uv  # or: pip install uv
-
-# install dependencies into a managed environment (Python 3.12 is required)
-uv python install 3.12
-uv sync --python 3.12
-
-# the first run of the wrapper will install PyTorch with the right variant automatically
+# install pixi once (https://pixi.sh)
+curl -fsSL https://pixi.sh/install.sh | bash
 ```
 
-FFmpeg is required for audio I/O. Install via your OS package manager:
+Choose the profile that matches the machine:
 
-- macOS: `brew install ffmpeg`
-- Windows: `winget install Gyan.FFmpeg` (or `choco install ffmpeg`)
-- Ubuntu/Debian: `sudo apt-get install ffmpeg`
-- Fedora: `sudo dnf install ffmpeg`
-- Arch: `sudo pacman -S ffmpeg`
+| Profile | Install command | Primary use |
+|---------|-----------------|-------------|
+| Capture-only | `pixi install -e capture` | Laptops that only record and upload audio |
+| CPU transcription | `pixi install -e cpu` | Run WhisperX locally on CPU |
+| GPU workstation | `pixi install -e gpu` | Full transcription + drop server on an NVIDIA host |
 
-That creates `.venv/` (tracked via `uv.lock`) with all Python dependencies except PyTorch (handled by the shell wrapper).
-
-## Installation Notes
-
-### Torch build selection (cross‑platform)
-
-PyTorch (and torchaudio) are installed by the wrapper on first run, so `uv sync` stays fast and portable across macOS, Linux, and Windows. By default it selects the **CPU-only** build to avoid large GPU downloads. If you need a GPU build, export `UV_TORCH_VARIANT` before running the script.
-
-Available variants:
-
-- `auto` (default) → picks `cu124` when `nvidia-smi` is available, otherwise `cpu`
-- `cpu` → CPU-only wheel from `https://download.pytorch.org/whl/cpu`
-- `cu124` → CUDA 12.4 wheels from `https://download.pytorch.org/whl/cu124`
-- `none` → skip automatic torch management (useful if you manage the wheel yourself)
-
-The wrapper installs both `torch` and `torchaudio` with matching variants. On macOS, the default PyPI index is used automatically (no special index needed). On Linux/Windows, CUDA wheels are fetched from the official PyTorch index when requested.
-
-Example GPU override:
+### Capture-only workflow
 
 ```bash
-export UV_TORCH_VARIANT=cu124
-./scripts/meeting-notes.sh recordings/all-hands.wav
+# set once (or pass as first argument to record-and-upload)
+export REMOTE_HTTP_ENDPOINT="https://jgi-ont.tailfd4067.ts.net/meeting-notes"
+
+# single command: record until Ctrl+C, then upload + fetch transcript
+pixi run -e capture record-and-upload
 ```
 
-Force CPU-only (useful on machines without NVIDIA GPUs):
+Pass a different endpoint or extra transcription flags as needed:
 
 ```bash
-UV_TORCH_VARIANT=cpu ./scripts/meeting-notes.sh recordings/all-hands.wav
+pixi run -e capture record-and-upload -- https://jgi-ont.tailfd4067.ts.net/meeting-notes --model medium
 ```
 
-### HuggingFace token
+The task uses `ffmpeg` (PulseAudio monitor by default) and immediately calls `meeting-notes.sh --remote-http …` once the capture stops. Transcripts land in `remote-results/<timestamp>-session.md` on the laptop.
 
-Export your token before running the script if you want diarisation:
+### CPU transcription
 
 ```bash
-export HF_TOKEN="hf_..."
+pixi install --environment cpu
+
+# one-off run using Pixi
+your@laptop$ pixi run -e cpu meeting-notes recordings/all-hands.wav
+
+# or via the helper
+your@laptop$ ./scripts/meeting-notes.sh recordings/all-hands.wav
 ```
 
-Pyannote’s diarisation pipeline is gated—after creating the token visit
-https://huggingface.co/pyannote/speaker-diarization-3.1 and accept the terms, otherwise the script will fall back to single-speaker output.
+Set `HF_TOKEN` beforehand to enable diarisation, and accept the pyannote terms (https://huggingface.co/pyannote/speaker-diarization-3.1).
+
+### GPU workstation
+
+```bash
+pixi install --environment gpu
+
+# optional: activate the environment for interactive work
+pixi shell -e gpu
+```
+
+The GPU environment uses the official `pytorch` + `nvidia` channels (CUDA 12.4). WhisperX still expects cuDNN runtime libraries, so keep a compatibility copy (for example under `~/.local/cudnn8/lib`) and export `CUDNN_COMPAT_DIR` before starting the drop service. One way to obtain them on Ubuntu:
+
+```bash
+curl -fLo /tmp/libcudnn8.deb   https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/libcudnn8_8.9.7.29-1+cuda12.2_amd64.deb
+mkdir -p ~/.local/cudnn8/lib
+dpkg-deb -x /tmp/libcudnn8.deb /tmp/libcudnn8
+cp /tmp/libcudnn8/usr/lib/x86_64-linux-gnu/libcudnn*.so.* ~/.local/cudnn8/lib
+```
+
+The helpers look at `MEETING_NOTES_ENV` (default `cpu`) to pick the local Pixi environment and at `TAILSCALE_REMOTE_PIXI_ENV` (default `gpu`) when running on a remote workstation.
 
 ## Capturing Audio
 
@@ -201,60 +206,51 @@ By default `meeting-notes.sh` injects `~/.local/cudnn8/lib` into `LD_LIBRARY_PAT
 
 1. **Start the drop server on the GPU host** (typically bound to localhost):
    ```bash
-   # quick start (auto configures tailscale serve + funnel)
-   uv run meeting-notes-drop-service --port 8040 --workers 1
+   # quick start (auto configures tailscale serve + funnel if possible)
+   pixi run -e gpu drop-service -- --port 8040 --workers 1
 
    # keep it running after logout (user systemd)
    systemctl --user daemon-reload
    systemctl --user enable --now meeting-notes-drop.service
 
    # disable automatic tailscale configuration and flip it on later yourself
-   uv run meeting-notes-drop-service --port 8040 --workers 1 --no-tailscale
+   pixi run -e gpu drop-service -- --port 8040 --workers 1 --no-tailscale
    
-   # or, for manual control
+   # or, manage the FastAPI app manually
    export DROP_SERVER_PORT=8040              # optional; defaults to 8000
    export DROP_MAX_WORKERS=1                # number of concurrent GPU jobs
-   uv run meeting-notes-drop-server
+   pixi run -e gpu drop-server
    ```
-   Jobs are stored under `dropbox/jobs/<timestamp>-<jobid>` with logs in `dropbox/logs/`.
-
-   Jobs are stored under `dropbox/jobs/<timestamp>-<jobid>` with logs in `dropbox/logs/`. The systemd unit lives at `~/.config/systemd/user/meeting-notes-drop.service` (default command includes `--no-tailscale` so you can manage serve/funnel manually).
+   Jobs are stored under `dropbox/jobs/<timestamp>-<jobid>` with logs in `dropbox/logs/`. The systemd unit lives at `~/.config/systemd/user/meeting-notes-drop.service` and defaults to `--no-tailscale` so you can manage `tailscale serve` / `tailscale funnel` yourself.
 
 2. **Expose it securely via Tailscale Funnel** (HTTPS only, no extra software on laptops):
    ```bash
    tailscale serve --https=443 --set-path=/meeting-notes http://127.0.0.1:${DROP_SERVER_PORT:-8000}
    tailscale funnel --https=443 on
    ```
-   The host’s MagicDNS name (for example `https://jgi-ont.tailfd4067.ts.net/meeting-notes`) becomes a public upload URL with TLS handled by Tailscale.
-   (If `meeting-notes-drop-service` was launched **without** `--no-tailscale` it will attempt the same commands automatically; existing serve routes may still require manual reconciliation.)
+   The host’s MagicDNS name (for example `https://jgi-ont.tailfd4067.ts.net/meeting-notes`) becomes a public upload URL with TLS handled by Tailscale. (If `meeting-notes-drop-service` was launched without `--no-tailscale` it attempts the same commands; existing serve routes may still require manual reconciliation.)
 
 3. **Run the CLI from any laptop without Tailscale installed**:
    ```bash
    ./scripts/meeting-notes.sh --remote-http https://jgi-ont.tailfd4067.ts.net/meeting-notes recordings/all-hands.wav
    ```
-   The wrapper streams the file via HTTPS, polls the job queue, and downloads the Markdown into `remote-results/<timestamp>-<stem>.md` on the caller’s machine.
-   A `log_url` is returned alongside the job ID for debugging (`dropbox/logs/<job>.log`).
+   The wrapper streams the file via HTTPS, polls the job queue, and downloads the Markdown into `remote-results/<timestamp>-<stem>.md` on the caller’s machine. A `log_url` is returned alongside the job ID for debugging (`dropbox/logs/<job>.log`).
 
 4. **Optional environment knobs**:
    - Set `REMOTE_HTTP_ENDPOINT` on the laptop for a default endpoint (`--remote-http` becomes optional).
-   - The drop server honours `HF_TOKEN`, `CUDNN_COMPAT_DIR`, and `CUDA_VISIBLE_DEVICES` from its environment before launching `meeting-notes.sh`.
+   - The drop server honours `HF_TOKEN`, `CUDNN_COMPAT_DIR`, and `CUDA_VISIBLE_DEVICES` from its environment before launching the transcription module.
 
-1. Copy the recording to the GPU host:
-   ```bash
-   rsync -avP meeting.m4a gpu-host:~/meetings/
-   ```
-2. SSH into the GPU host, clone the repo if needed, and run the same script:
-   ```bash
-   ssh gpu-host
-   cd ~/whisper-meeting-notes
-   uv python install 3.12
-   export UV_TORCH_VARIANT=cu124
-   uv sync --python 3.12 --frozen
-   ./scripts/meeting-notes.sh ~/meetings/meeting.m4a ~/meetings/meeting-notes.md
-   ```
-3. Pull the resulting Markdown back via `rsync` or share it with your note-taking tools.
+For manual rsync/SSH workflows (when you prefer not to use the helpers):
 
-The script automatically detects CUDA (`torch.cuda.is_available()`) and will use mixed-precision decoding when available.
+```bash
+rsync -avP meeting.m4a gpu-host:~/meetings/
+ssh gpu-host
+cd ~/whisper-meeting-notes
+pixi install --environment gpu    # once per host
+pixi run -e gpu meeting-notes ./meetings/meeting.m4a ./meetings/meeting-notes.md
+```
+
+Pull the resulting Markdown back via `rsync` or share it with your note-taking tools. The script automatically detects CUDA (`torch.cuda.is_available()`) and will use mixed-precision decoding when available.
 
 ## Git Workflow for Moderators
 

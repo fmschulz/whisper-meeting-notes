@@ -1,16 +1,22 @@
 #!/bin/bash
 
-# Thin wrapper around `uv run` so moderators can launch transcription quickly.
+# Thin wrapper around Pixi environments so moderators can launch transcription quickly.
 # Usage: meeting-notes.sh <audio-file> [output-file]
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-UV_PYTHON_VERSION="${UV_PYTHON_VERSION:-3.12}"
-TORCH_VARIANT="${UV_TORCH_VARIANT:-auto}"
-TORCH_SPEC="${UV_TORCH_SPEC:-torch==2.5.1}"
-TORCHAUDIO_SPEC="${UV_TORCHAUDIO_SPEC:-torchaudio==2.5.1}"
+
+PIXIE_BIN="${PIXIE_BIN:-$(command -v pixi 2>/dev/null || true)}"
+if [[ -z "${PIXIE_BIN}" ]]; then
+  echo "pixi executable not found. Install pixi and ensure it is on PATH." >&2
+  exit 1
+fi
+
+DEFAULT_PIXI_ENV="${MEETING_NOTES_ENV:-cpu}"
+REMOTE_PIXI_ENV="${TAILSCALE_REMOTE_PIXI_ENV:-gpu}"
+REMOTE_PIXI_BIN="${TAILSCALE_REMOTE_PIXI_BIN:-pixi}"
 
 TAILSCALE_HOST=""
 TAILSCALE_USER="${TAILSCALE_REMOTE_USER:-}"
@@ -31,7 +37,7 @@ if [[ -d "${CUDNN_COMPAT_DIR}" ]]; then
 fi
 
 usage() {
-  cat <<'EOF'
+  cat <<'USAGE'
 Usage: meeting-notes.sh [--tailscale-host HOST | --remote-http URL] [options] <audio-file> [output-file]
 
 Remote execution options:
@@ -47,13 +53,13 @@ All other options are passed through to the underlying Python CLI. Examples:
   meeting-notes.sh recording.wav
   meeting-notes.sh --tailscale-host gpu-box recording.wav notes.md
   meeting-notes.sh recording.wav --model large-v3 --beam-size 10
-EOF
+USAGE
 }
 
 shell_quote() {
-  local s=$1
-  s=${s//\'/\'\\\'\'}
-  printf "'%s'" "$s"
+  local pybin
+  pybin=$(python_bin)
+  "${pybin}" -c 'import shlex, sys; print(shlex.quote(sys.argv[1]))' "$1"
 }
 
 python_bin() {
@@ -147,18 +153,15 @@ run_remote() {
     positionals+=("$current")
   done
 
-  local audio_arg=""
-  local output_arg=""
-  if [[ ${#positionals[@]} -ge 1 ]]; then
-    audio_arg="${positionals[0]}"
-  fi
-  if [[ ${#positionals[@]} -ge 2 ]]; then
-    output_arg="${positionals[1]}"
-  fi
-
-  if [[ -z "$audio_arg" ]]; then
+  if [[ ${#positionals[@]} -lt 1 ]]; then
     echo "Audio file not supplied; pass it after any options." >&2
     exit 1
+  fi
+
+  local audio_arg="${positionals[0]}"
+  local output_arg=""
+  if [[ ${#positionals[@]} -ge 2 ]]; then
+    output_arg="${positionals[1]}"
   fi
 
   local audio_path
@@ -184,10 +187,6 @@ run_remote() {
   mkdir -p "$(dirname "$local_output_path")"
 
   local remote_target
-  if [[ -z "$TAILSCALE_HOST" ]]; then
-    echo "--tailscale-host requires a hostname or MagicDNS name." >&2
-    exit 1
-  fi
   if [[ -n "$TAILSCALE_USER" ]]; then
     remote_target="${TAILSCALE_USER}@${TAILSCALE_HOST}"
   else
@@ -195,10 +194,6 @@ run_remote() {
   fi
 
   local remote_repo="$REMOTE_REPO"
-  if [[ -z "$remote_repo" ]]; then
-    remote_repo="~/whisper-meeting-notes"
-  fi
-
   local remote_base
   if [[ "$REMOTE_WORKDIR" == /* || "$REMOTE_WORKDIR" == "~"* ]]; then
     remote_base="$REMOTE_WORKDIR"
@@ -223,7 +218,7 @@ run_remote() {
   "${TAILSCALE_BIN}" ssh "${remote_target}" bash -lc "$upload_cmd" < "$audio_path"
 
   local remote_env=()
-  for var in HF_TOKEN UV_TORCH_VARIANT UV_PYTHON_VERSION UV_TORCH_SPEC UV_TORCHAUDIO_SPEC CUDA_VISIBLE_DEVICES CUDNN_COMPAT_DIR; do
+  for var in HF_TOKEN CUDA_VISIBLE_DEVICES CUDNN_COMPAT_DIR MEETING_NOTES_ENV; do
     if [[ -n "${!var:-}" ]]; then
       remote_env+=("${var}=$(shell_quote "${!var}")")
     fi
@@ -233,7 +228,7 @@ run_remote() {
   if (( ${#remote_env[@]} > 0 )); then
     remote_command+="${remote_env[*]} "
   fi
-  remote_command+="./scripts/meeting-notes.sh $(shell_quote "$remote_audio_path") $(shell_quote "$remote_output_path")"
+  remote_command+="${REMOTE_PIXI_BIN} run --environment ${REMOTE_PIXI_ENV} -- python -m meeting_notes.main $(shell_quote "$remote_audio_path") $(shell_quote "$remote_output_path")"
   for extra in "${passthrough[@]}"; do
     remote_command+=" $(shell_quote "$extra")"
   done
@@ -360,13 +355,10 @@ run_http_remote() {
     options_json=$("${pybin}" -c 'import json, sys; print(json.dumps(sys.argv[1:]))' "${passthrough[@]}")
   fi
 
-  local output_name
-  output_name="$(basename "$local_output_path")"
-
   local curl_args=(
     --silent --show-error --fail
     --form "file=@${audio_path};filename=${audio_filename}"
-    --form-string "output_name=${output_name}"
+    --form-string "output_name=$(basename "$local_output_path")"
   )
   if [[ "${options_json}" != "[]" ]]; then
     curl_args+=(--form-string "options=${options_json}")
@@ -393,7 +385,7 @@ run_http_remote() {
 
   echo "Job ${job_id} queued. Polling status…"
   local start_time
-  start_time=$(date +%s)
+  start_time="$(date +%s)"
 
   while true; do
     local status_json
@@ -431,7 +423,7 @@ run_http_remote() {
     esac
 
     local now
-    now=$(date +%s)
+    now="$(date +%s)"
     if (( now - start_time > HTTP_TIMEOUT )); then
       echo "Timed out waiting for remote transcription after ${HTTP_TIMEOUT}s." >&2
       exit 1
@@ -512,11 +504,6 @@ while [[ $# -gt 0 ]]; do
 done
 set -- "${POSITIONAL[@]}"
 
-if [[ -n "$TAILSCALE_HOST" && -n "$REMOTE_HTTP_ENDPOINT" ]]; then
-  echo "Cannot use --tailscale-host and --remote-http together." >&2
-  exit 1
-fi
-
 if [[ -n "$TAILSCALE_HOST" ]]; then
   run_remote "$@"
   exit 0
@@ -527,84 +514,9 @@ if [[ -n "$REMOTE_HTTP_ENDPOINT" ]]; then
   exit 0
 fi
 
-if ! command -v uv >/dev/null 2>&1; then
-  echo "uv is required. Install via \"pip install uv\" or your package manager." >&2
-  exit 1
+if [[ $# -eq 0 ]]; then
+  usage
+  exit 0
 fi
 
-echo "Ensuring dependencies are in sync (first run will download models)…"
-uv sync --project "${PROJECT_ROOT}" --python "${UV_PYTHON_VERSION}" --frozen 2>/dev/null \
-  || uv sync --project "${PROJECT_ROOT}" --python "${UV_PYTHON_VERSION}"
-
-ensure_torch() {
-  local desired_variant="${TORCH_VARIANT}"
-  local os_name
-  os_name="$(uname -s)"
-
-  if [[ "${desired_variant}" == "auto" ]]; then
-    if command -v nvidia-smi >/dev/null 2>&1; then
-      desired_variant="cu124"
-    else
-      desired_variant="cpu"
-    fi
-    echo "Auto-selecting Torch variant: ${desired_variant}"
-  fi
-
-  case "${desired_variant}" in
-    cpu)
-      if [[ "${os_name}" == "Darwin" ]]; then
-        torch_index="" # use default PyPI for macOS
-      else
-        torch_index="https://download.pytorch.org/whl/cpu"
-      fi
-      ;;
-    cu124)
-      torch_index="https://download.pytorch.org/whl/cu124"
-      ;;
-    none)
-      return 0
-      ;;
-    *)
-      echo "Unknown UV_TORCH_VARIANT='${desired_variant}'. Supported: auto, cpu, cu124, none." >&2
-      exit 1
-      ;;
-  esac
-
-  current_variant=$(uv run --project "${PROJECT_ROOT}" --python "${UV_PYTHON_VERSION}" python - <<'PY'
-try:
-    import torch
-except Exception:
-    print("missing")
-else:
-    print("cuda" if torch.version.cuda else "cpu")
-PY
-  )
-  current_variant=$(printf '%s' "${current_variant}" | tr -d '\r\n')
-
-  if [[ "${desired_variant}" == "cpu" && "${current_variant}" == "cpu" ]]; then
-    return 0
-  fi
-
-  if [[ "${desired_variant}" == "cu124" && "${current_variant}" == "cuda" ]]; then
-    return 0
-  fi
-
-  echo "Installing Torch stack (${desired_variant})…"
-  if [[ -n "${torch_index:-}" ]]; then
-    uv run --project "${PROJECT_ROOT}" --python "${UV_PYTHON_VERSION}" \
-      pip install --no-deps --upgrade "${TORCH_SPEC}" "${TORCHAUDIO_SPEC}" --index-url "${torch_index}"
-  else
-    uv run --project "${PROJECT_ROOT}" --python "${UV_PYTHON_VERSION}" \
-      pip install --no-deps --upgrade "${TORCH_SPEC}" "${TORCHAUDIO_SPEC}"
-  fi
-}
-
-ensure_torch
-
-if [[ -n "${HF_TOKEN:-}" ]]; then
-  echo "HF_TOKEN detected – diarisation will be enabled."
-else
-  echo "HF_TOKEN not set – transcript will use a single default speaker (export HF_TOKEN to enable diarisation)."
-fi
-
-uv run --project "${PROJECT_ROOT}" --python "${UV_PYTHON_VERSION}" meeting-notes "$@"
+"${PIXIE_BIN}" run --environment "${DEFAULT_PIXI_ENV}" -- python -m meeting_notes.main "$@"

@@ -3,6 +3,11 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$PixiBin = if ($env:PIXIE_BIN) { $env:PIXIE_BIN } else { (Get-Command pixi -ErrorAction Stop).Path }
+$DefaultPixiEnv = if ($env:MEETING_NOTES_ENV) { $env:MEETING_NOTES_ENV } else { 'cpu' }
+$RemotePixiEnv = if ($env:TAILSCALE_REMOTE_PIXI_ENV) { $env:TAILSCALE_REMOTE_PIXI_ENV } else { 'gpu' }
+$RemotePixiBin = if ($env:TAILSCALE_REMOTE_PIXI_BIN) { $env:TAILSCALE_REMOTE_PIXI_BIN } else { 'pixi' }
+
 function Show-Usage {
   @"
 Usage: meeting-notes.ps1 [--tailscale-host HOST | --remote-http URL] [options] <audio-file> [output-file]
@@ -203,7 +208,8 @@ function Invoke-RemoteTranscription {
     [string]$RemoteRepo,
     [string]$RemoteWorkdir,
     [switch]$KeepRemote,
-    [string]$TailscalePath
+    [string]$TailscalePath,
+    [string]$PixiEnvironment
   )
 
   if (-not $Audio) {
@@ -250,7 +256,7 @@ function Invoke-RemoteTranscription {
   Write-Host "Uploading $(Split-Path -Leaf $audioPath) to $remoteTarget…"
   Send-FileOverTailscale -TailscalePath $TailscalePath -Target $remoteTarget -RemotePath $remoteAudioPath -LocalPath $audioPath
 
-  $envVars = @('HF_TOKEN','UV_TORCH_VARIANT','UV_PYTHON_VERSION','UV_TORCH_SPEC','UV_TORCHAUDIO_SPEC','CUDA_VISIBLE_DEVICES','CUDNN_COMPAT_DIR')
+  $envVars = @('HF_TOKEN','CUDA_VISIBLE_DEVICES','CUDNN_COMPAT_DIR','MEETING_NOTES_ENV')
   $assignments = @()
   foreach ($name in $envVars) {
     $value = [Environment]::GetEnvironmentVariable($name)
@@ -263,7 +269,7 @@ function Invoke-RemoteTranscription {
   if ($assignments.Count -gt 0) {
     $remoteCommand += ($assignments -join ' ') + ' '
   }
-  $remoteCommand += "./scripts/meeting-notes.sh $(Get-ShellQuoted $remoteAudioPath) $(Get-ShellQuoted $remoteOutputPath)"
+  $remoteCommand += "$RemotePixiBin run --environment $PixiEnvironment -- python -m meeting_notes.main $(Get-ShellQuoted $remoteAudioPath) $(Get-ShellQuoted $remoteOutputPath)"
   foreach ($extra in $Extras) {
     $remoteCommand += ' ' + (Get-ShellQuoted $extra)
   }
@@ -380,10 +386,6 @@ function Invoke-HttpRemoteTranscription {
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = (Resolve-Path (Join-Path $ScriptDir '..'))
 
-$PythonVersion = if ($env:UV_PYTHON_VERSION) { $env:UV_PYTHON_VERSION } else { '3.12' }
-$Variant = if ($env:UV_TORCH_VARIANT) { $env:UV_TORCH_VARIANT } else { 'auto' }
-$TorchSpec = if ($env:UV_TORCH_SPEC) { $env:UV_TORCH_SPEC } else { 'torch==2.5.1' }
-$TorchaudioSpec = if ($env:UV_TORCHAUDIO_SPEC) { $env:UV_TORCHAUDIO_SPEC } else { 'torchaudio==2.5.1' }
 $TailscaleBin = if ($env:TAILSCALE_BIN) { $env:TAILSCALE_BIN } else { 'tailscale' }
 $TailscaleUser = if ($env:TAILSCALE_REMOTE_USER) { $env:TAILSCALE_REMOTE_USER } else { $null }
 $RemoteRepoDefault = if ($env:TAILSCALE_REMOTE_REPO) { $env:TAILSCALE_REMOTE_REPO } else { '~/whisper-meeting-notes' }
@@ -458,7 +460,7 @@ if ($tailscaleHost) {
   if (-not $parsed.Audio) { throw "Audio file is required when using --tailscale-host." }
   Invoke-RemoteTranscription -Audio $parsed.Audio -Output $parsed.Output -Extras $parsed.Passthrough `
     -RemoteHost $tailscaleHost -RemoteUser $tailscaleUser -RemoteRepo $remoteRepo -RemoteWorkdir $remoteWorkdir `
-    -KeepRemote:$keepRemote -TailscalePath $tailscaleCmd.Path
+    -KeepRemote:$keepRemote -TailscalePath $tailscaleCmd.Path -PixiEnvironment $RemotePixiEnv
   return
 }
 
@@ -469,59 +471,15 @@ if ($remoteHttp) {
   return
 }
 
-if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-  Write-Error "uv is required. Install via 'pipx install uv' or 'pip install uv'."
+$parsedArgs = Parse-MeetingArgs -Arguments $positionalArgs.ToArray()
+if (-not $parsedArgs.Audio) {
+  Show-Usage
   exit 1
 }
 
-Write-Host "Ensuring dependencies are in sync (first run may download models)…"
-try {
-  uv sync --project $ProjectRoot --python $PythonVersion --frozen *> $null
-} catch {
-  uv sync --project $ProjectRoot --python $PythonVersion
-}
-
-function Ensure-TorchStack {
-  param()
-  $desired = $Variant
-
-  if ($desired -eq 'auto') {
-    if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
-      $desired = 'cu124'
-    } else {
-      $desired = 'cpu'
-    }
-    Write-Host "Auto-selecting Torch variant: $desired"
-  }
-
-  if ($desired -eq 'none') { return }
-
-  $isMac = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::OSX)
-  $indexArgs = @()
-  switch ($desired) {
-    'cpu' {
-      if (-not $isMac) { $indexArgs = @('--index-url','https://download.pytorch.org/whl/cpu') }
-    }
-    'cu124' { $indexArgs = @('--index-url','https://download.pytorch.org/whl/cu124') }
-    default { throw "Unknown UV_TORCH_VARIANT='$desired'. Supported: auto, cpu, cu124, none." }
-  }
-
-  Write-Host "Installing Torch stack ($desired)…"
-  if ($indexArgs.Length -gt 0) {
-    uv run --project $ProjectRoot --python $PythonVersion `
-      pip install --no-deps --upgrade $TorchSpec $TorchaudioSpec @indexArgs
-  } else {
-    uv run --project $ProjectRoot --python $PythonVersion `
-      pip install --no-deps --upgrade $TorchSpec $TorchaudioSpec
-  }
-}
-
-Ensure-TorchStack
-
-if ($env:HF_TOKEN) {
-  Write-Host "HF_TOKEN detected – diarisation will be enabled."
+$pixiArgs = @('run', '--environment', $DefaultPixiEnv, '--', 'python', '-m', 'meeting_notes.main')
+if ($parsedArgs.Output) {
+  & $PixiBin @pixiArgs $parsedArgs.Audio $parsedArgs.Output @($parsedArgs.Passthrough)
 } else {
-  Write-Host "HF_TOKEN not set – transcript will use a single default speaker (export HF_TOKEN to enable diarisation)."
+  & $PixiBin @pixiArgs $parsedArgs.Audio @($parsedArgs.Passthrough)
 }
-
-uv run --project $ProjectRoot --python $PythonVersion meeting-notes $positionalArgs

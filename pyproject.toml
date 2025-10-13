@@ -1,3 +1,4 @@
+
 [project]
 name = "meeting-notes-kit"
 version = "0.1.0"
@@ -5,23 +6,82 @@ description = "High-fidelity meeting transcription with WhisperX diarisation."
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 
-[tool.uv]
-package = true
-default-groups = ["base"]
-
-[dependency-groups]
-base = [
-    "whisperx>=3.1",
-    "pyannote.audio>=3.2",
-    "rich>=13.9",
-    "tabulate>=0.9",
-    "fastapi>=0.111",
-    "uvicorn[standard]>=0.32",
-    "python-multipart>=0.0.9",
-]
-
-
 [project.scripts]
 meeting-notes = "meeting_notes.main:main"
 meeting-notes-drop-server = "meeting_notes.drop_server:main"
 meeting-notes-drop-service = "meeting_notes.drop_service:main"
+
+[tool.pixi.project]
+channels = ["conda-forge", "pytorch", "nvidia"]
+platforms = ["linux-64"]
+
+[tool.pixi.dependencies]
+
+[tool.pixi.feature.capture.dependencies]
+ffmpeg = "*"
+openh264 = "*"
+pulseaudio = "*"
+
+[tool.pixi.feature.cpu.dependencies]
+python = "3.12.*"
+pip = "*"
+ffmpeg = "*"
+openh264 = "*"
+pytorch = "2.5.*"
+torchaudio = "2.5.*"
+
+[tool.pixi.feature.cpu."pypi-dependencies"]
+meeting-notes-kit = { path = ".", editable = true }
+whisperx = ">=3.1"
+"pyannote.audio" = ">=3.2"
+rich = ">=13.9"
+tabulate = ">=0.9"
+fastapi = ">=0.111"
+uvicorn = { version = ">=0.32", extras = ["standard"] }
+python-multipart = ">=0.0.9"
+
+[tool.pixi.feature.gpu.dependencies]
+python = "3.12.*"
+pip = "*"
+ffmpeg = "*"
+openh264 = "*"
+pytorch = "2.5.*"
+"pytorch-cuda" = "12.4.*"
+torchaudio = "2.5.*"
+
+[tool.pixi.feature.gpu."pypi-dependencies"]
+meeting-notes-kit = { path = ".", editable = true }
+whisperx = ">=3.1"
+"pyannote.audio" = ">=3.2"
+rich = ">=13.9"
+tabulate = ">=0.9"
+fastapi = ">=0.111"
+uvicorn = { version = ">=0.32", extras = ["standard"] }
+python-multipart = ">=0.0.9"
+
+[tool.pixi.environments.capture]
+features = ["capture"]
+
+[tool.pixi.environments.cpu]
+features = ["cpu"]
+
+[tool.pixi.environments.gpu]
+features = ["gpu"]
+
+[tool.pixi.tasks.record-default]
+cmd = ["bash", "scripts/ffmpeg-wrapper.sh", "recordings/session.flac", "-c:a", "flac"]
+
+[tool.pixi.tasks.record-and-upload]
+cmd = ["bash", "scripts/record-and-upload.sh"]
+
+[tool.pixi.tasks.meeting-notes]
+cmd = ["python", "-m", "meeting_notes.main"]
+
+[tool.pixi.tasks.meeting-notes-gpu]
+cmd = ["python", "-m", "meeting_notes.main"]
+
+[tool.pixi.tasks.drop-server]
+cmd = ["python", "-m", "meeting_notes.drop_server"]
+
+[tool.pixi.tasks.drop-service]
+cmd = ["python", "-m", "meeting_notes.drop_service"]
