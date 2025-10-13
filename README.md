@@ -204,6 +204,13 @@ By default `meeting-notes.sh` injects `~/.local/cudnn8/lib` into `LD_LIBRARY_PAT
    # quick start (auto configures tailscale serve + funnel)
    uv run meeting-notes-drop-service --port 8040 --workers 1
 
+   # keep it running after logout (user systemd)
+   systemctl --user daemon-reload
+   systemctl --user enable --now meeting-notes-drop.service
+
+   # disable automatic tailscale configuration and flip it on later yourself
+   uv run meeting-notes-drop-service --port 8040 --workers 1 --no-tailscale
+   
    # or, for manual control
    export DROP_SERVER_PORT=8040              # optional; defaults to 8000
    export DROP_MAX_WORKERS=1                # number of concurrent GPU jobs
@@ -211,17 +218,19 @@ By default `meeting-notes.sh` injects `~/.local/cudnn8/lib` into `LD_LIBRARY_PAT
    ```
    Jobs are stored under `dropbox/jobs/<timestamp>-<jobid>` with logs in `dropbox/logs/`.
 
+   Jobs are stored under `dropbox/jobs/<timestamp>-<jobid>` with logs in `dropbox/logs/`. The systemd unit lives at `~/.config/systemd/user/meeting-notes-drop.service` (default command includes `--no-tailscale` so you can manage serve/funnel manually).
+
 2. **Expose it securely via Tailscale Funnel** (HTTPS only, no extra software on laptops):
    ```bash
-   tailscale serve --https=443 / http://127.0.0.1:${DROP_SERVER_PORT:-8000}
+   tailscale serve --https=443 --set-path=/meeting-notes http://127.0.0.1:${DROP_SERVER_PORT:-8000}
    tailscale funnel --https=443 on
    ```
-   The host’s MagicDNS name (for example `https://jgi-ont.tailfd4067.ts.net`) becomes a public upload URL with TLS handled by Tailscale.
-   (Skip this step when using `meeting-notes-drop-service`, which runs the commands for you unless invoked with `--no-tailscale`.)
+   The host’s MagicDNS name (for example `https://jgi-ont.tailfd4067.ts.net/meeting-notes`) becomes a public upload URL with TLS handled by Tailscale.
+   (If `meeting-notes-drop-service` was launched **without** `--no-tailscale` it will attempt the same commands automatically; existing serve routes may still require manual reconciliation.)
 
 3. **Run the CLI from any laptop without Tailscale installed**:
    ```bash
-   ./scripts/meeting-notes.sh --remote-http https://jgi-ont.tailfd4067.ts.net recordings/all-hands.wav
+   ./scripts/meeting-notes.sh --remote-http https://jgi-ont.tailfd4067.ts.net/meeting-notes recordings/all-hands.wav
    ```
    The wrapper streams the file via HTTPS, polls the job queue, and downloads the Markdown into `remote-results/<timestamp>-<stem>.md` on the caller’s machine.
    A `log_url` is returned alongside the job ID for debugging (`dropbox/logs/<job>.log`).

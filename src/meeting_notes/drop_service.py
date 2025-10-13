@@ -14,20 +14,66 @@ def run_command(cmd: list[str], *, check: bool = True) -> subprocess.CompletedPr
     return subprocess.run(cmd, check=check, text=True, capture_output=False)
 
 
-def enable_tailscale_https(port: int, serve_host: str, https_port: int) -> None:
-    run_command(
-        [
+def _normalize_path(path: str) -> str:
+    if not path.startswith("/"):
+        path = "/" + path
+    return path.rstrip("/") or "/"
+
+
+def enable_tailscale_https(port: int, serve_host: str, https_port: int, serve_path: str) -> bool:
+    serve_path = _normalize_path(serve_path)
+    run_command([
+        "tailscale",
+        "serve",
+        f"--https={https_port}",
+        f"--set-path={serve_path}",
+        "off",
+    ], check=False)
+    try:
+        run_command([
+            "tailscale",
+            "serve",
+            "--yes",
+            f"--https={https_port}",
+            f"--set-path={serve_path}",
+            f"http://{serve_host}:{port}",
+        ])
+    except subprocess.CalledProcessError as exc:  # pragma: no cover - depends on tailscale CLI
+        import sys
+
+        print(
+            f"[meeting-notes-drop-service] tailscale serve failed for https:{https_port} "
+            f"path {serve_path} -> {serve_host}:{port}.",
+            file=sys.stderr,
+        )
+        print(
+            f"[meeting-notes-drop-service] leaving drop server running without tailscale: {exc}",
+            file=sys.stderr,
+        )
+        return False
+
+    try:
+        run_command(["tailscale", "funnel", f"--https={https_port}", "on"])
+    except subprocess.CalledProcessError as exc:  # pragma: no cover - optional config
+        import sys
+
+        print(
+            f"[meeting-notes-drop-service] warning: tailscale funnel enable failed: {exc}",
+            file=sys.stderr,
+        )
+    return True
+
+
+def disable_tailscale_https(https_port: int, serve_path: str) -> None:
+    serve_path = _normalize_path(serve_path)
+    with suppress(Exception):
+        run_command([
             "tailscale",
             "serve",
             f"--https={https_port}",
-            "/",
-            f"http://{serve_host}:{port}",
-        ]
-    )
-    run_command(["tailscale", "funnel", f"--https={https_port}", "on"])
-
-
-def disable_tailscale_https(https_port: int) -> None:
+            f"--set-path={serve_path}",
+            "off",
+        ], check=False)
     with suppress(Exception):
         run_command(["tailscale", "funnel", f"--https={https_port}", "off"], check=False)
 
@@ -66,6 +112,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Host used for the tailscale serve target URL (default: 127.0.0.1).",
     )
     parser.add_argument(
+        "--serve-path",
+        default=os.environ.get("DROP_SERVER_PATH", "/meeting-notes"),
+        help="Path segment to mount on tailscale serve (default: /meeting-notes).",
+    )
+    parser.add_argument(
         "--no-tailscale",
         action="store_true",
         help="Skip configuring tailscale serve/funnel; only run the local drop server.",
@@ -81,19 +132,19 @@ def main(argv: list[str] | None = None) -> int:
     os.environ["DROP_SERVER_PORT"] = str(args.port)
     os.environ["DROP_SERVER_HOST"] = args.host
     os.environ["DROP_MAX_WORKERS"] = str(max(1, args.workers))
+    os.environ["DROP_SERVER_PATH"] = _normalize_path(args.serve_path)
 
     started_tailscale = False
     if not args.no_tailscale:
         if not which("tailscale"):
             parser.error("tailscale CLI not found. Install tailscale or pass --no-tailscale.")
-        enable_tailscale_https(args.port, args.serve_host, args.https_port)
-        started_tailscale = True
+        started_tailscale = enable_tailscale_https(args.port, args.serve_host, args.https_port, args.serve_path)
 
     try:
         drop_server.main()
     finally:
         if started_tailscale and not args.leave_tailscale:
-            disable_tailscale_https(args.https_port)
+            disable_tailscale_https(args.https_port, args.serve_path)
     return 0
 
 
