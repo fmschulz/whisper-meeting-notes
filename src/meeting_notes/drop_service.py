@@ -25,8 +25,8 @@ def enable_tailscale_https(port: int, serve_host: str, https_port: int, serve_pa
     run_command([
         "tailscale",
         "serve",
+        "--yes",
         f"--https={https_port}",
-        f"--set-path={serve_path}",
         "off",
     ], check=False)
     try:
@@ -34,6 +34,7 @@ def enable_tailscale_https(port: int, serve_host: str, https_port: int, serve_pa
             "tailscale",
             "serve",
             "--yes",
+            "--bg",
             f"--https={https_port}",
             f"--set-path={serve_path}",
             f"http://{serve_host}:{port}",
@@ -42,8 +43,7 @@ def enable_tailscale_https(port: int, serve_host: str, https_port: int, serve_pa
         import sys
 
         print(
-            f"[meeting-notes-drop-service] tailscale serve failed for https:{https_port} "
-            f"path {serve_path} -> {serve_host}:{port}.",
+            f"[meeting-notes-drop-service] tailscale serve failed for https:{https_port} path {serve_path} -> {serve_host}:{port}.",
             file=sys.stderr,
         )
         print(
@@ -51,18 +51,7 @@ def enable_tailscale_https(port: int, serve_host: str, https_port: int, serve_pa
             file=sys.stderr,
         )
         return False
-
-    try:
-        run_command(["tailscale", "funnel", f"--https={https_port}", "on"])
-    except subprocess.CalledProcessError as exc:  # pragma: no cover - optional config
-        import sys
-
-        print(
-            f"[meeting-notes-drop-service] warning: tailscale funnel enable failed: {exc}",
-            file=sys.stderr,
-        )
     return True
-
 
 def disable_tailscale_https(https_port: int, serve_path: str) -> None:
     serve_path = _normalize_path(serve_path)
