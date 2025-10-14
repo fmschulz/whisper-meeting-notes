@@ -21,6 +21,10 @@ JOBS_DIR = DEFAULT_DROPBOX / "jobs"
 LOGS_DIR = DEFAULT_DROPBOX / "logs"
 MAX_WORKERS = max(1, int(os.environ.get("DROP_MAX_WORKERS", "1")))
 
+SERVER_BASE_PATH = os.environ.get("DROP_SERVER_PATH", "").strip()
+if SERVER_BASE_PATH and not SERVER_BASE_PATH.startswith("/"):
+    SERVER_BASE_PATH = '/' + SERVER_BASE_PATH
+SERVER_BASE_PATH = SERVER_BASE_PATH.rstrip('/')
 
 class JobStatus(str):
     PENDING = "pending"
@@ -46,6 +50,14 @@ class Job:
 app = FastAPI(title="Meeting Notes Drop Server")
 job_queue: "asyncio.Queue[Job]" = asyncio.Queue()
 jobs: Dict[str, Job] = {}
+
+
+def _build_external_url(request: Request, route: str, **params: str) -> str:
+    internal_path = request.app.url_path_for(route, **params)
+    prefix = SERVER_BASE_PATH
+    if prefix and prefix != "" and prefix != "/" and not internal_path.startswith(prefix):
+        internal_path = prefix + internal_path
+    return f"{request.url.scheme}://{request.url.netloc}{internal_path}"
 
 
 def ensure_directories() -> None:
@@ -181,9 +193,9 @@ async def upload(
     jobs[job_id] = job
     await job_queue.put(job)
 
-    status_url = request.url_for("get_status", job_id=job_id)
-    result_url = request.url_for("get_result", job_id=job_id)
-    log_url = request.url_for("get_log", job_id=job_id)
+    status_url = _build_external_url(request, "get_status", job_id=job_id)
+    result_url = _build_external_url(request, "get_result", job_id=job_id)
+    log_url = _build_external_url(request, "get_log", job_id=job_id)
 
     return JSONResponse(
         {
