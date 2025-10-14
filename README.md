@@ -92,6 +92,8 @@ Run the helper once on the workstation to install dependencies, create the syste
 
 Optionally set `DROP_SERVICE_CUDA_VISIBLE_DEVICES` before running the helper to pin the service to a different GPU index.
 
+The helper writes the detected HTTPS entrypoint into `.remote-http-endpoint`, which the CLI wrappers read automatically (no need to `export REMOTE_HTTP_ENDPOINT` on your laptop unless you override it).
+
 The service listens on `127.0.0.1:8040`, publishes `https://jgi-ont.tailfd4067.ts.net/meeting-notes`, and pins WhisperX to the first supported GPU (auto-detected, falling back to `CUDA_VISIBLE_DEVICES=0`). Check status with `systemctl --user status meeting-notes-drop.service`.
 
 ## Capturing Audio
@@ -152,17 +154,17 @@ Running `large-v3` on a dedicated GPU can cut transcription time drastically (mi
 
 ```mermaid
 flowchart TD
-    A[Capture audio
-    • record-audio.sh
-    • Zoom export
-    • Hardware recorder] --> B[Run meeting-notes.sh
-    (Laptop, CPU default)]
-    B --> C[Markdown transcript
-    with diarisation]
-    A --> D[Optional: Upload audio
-    to GPU workstation]
-    D --> E[Run meeting-notes.sh
-    on GPU (set UV_TORCH_VARIANT=cu124)]
+    A["`Capture audio
+- record-audio.sh
+- Zoom export
+- Hardware recorder`"] --> B["`Run meeting-notes.sh
+(Laptop, CPU default)`"]
+    B --> C["`Markdown transcript
+with diarisation`"]
+    A --> D["`Optional: Upload audio
+to GPU workstation`"]
+    D --> E["`Run meeting-notes.sh
+on GPU (set UV_TORCH_VARIANT=cu124)`"]
     E --> C
 ```
 

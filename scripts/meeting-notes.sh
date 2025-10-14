@@ -7,6 +7,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+DEFAULT_REMOTE_HTTP_FILE="${PROJECT_ROOT}/.remote-http-endpoint"
 
 PIXIE_BIN="${PIXIE_BIN:-$(command -v pixi 2>/dev/null || true)}"
 if [[ -z "${PIXIE_BIN}" ]]; then
@@ -25,6 +26,7 @@ REMOTE_WORKDIR="${TAILSCALE_REMOTE_WORKDIR:-.remote-jobs}"
 KEEP_REMOTE_JOB="${TAILSCALE_KEEP_REMOTE_JOB:-}"
 TAILSCALE_BIN="${TAILSCALE_BIN:-tailscale}"
 REMOTE_HTTP_ENDPOINT="${REMOTE_HTTP_ENDPOINT:-}"
+USE_HTTP_REMOTE=0
 HTTP_TIMEOUT="${HTTP_TIMEOUT:-600}"
 CUDNN_COMPAT_DIR="${CUDNN_COMPAT_DIR:-$HOME/.local/cudnn8/lib}"
 
@@ -266,6 +268,10 @@ run_http_remote() {
     exit 1
   fi
 
+  if [[ -z "$REMOTE_HTTP_ENDPOINT" && -f "$DEFAULT_REMOTE_HTTP_FILE" ]]; then
+    REMOTE_HTTP_ENDPOINT="$(<"$DEFAULT_REMOTE_HTTP_FILE")"
+  fi
+
   if [[ -z "$REMOTE_HTTP_ENDPOINT" ]]; then
     echo "Remote HTTP endpoint not configured." >&2
     exit 1
@@ -493,13 +499,15 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --remote-http)
+      USE_HTTP_REMOTE=1
       shift
-      if [[ $# -eq 0 ]]; then
-        echo "--remote-http expects a value." >&2
-        exit 1
+      if [[ $# -gt 0 ]]; then
+        maybe_endpoint="$1"
+        if [[ "${maybe_endpoint}" == *"://"* ]]; then
+          REMOTE_HTTP_ENDPOINT="$maybe_endpoint"
+          shift
+        fi
       fi
-      REMOTE_HTTP_ENDPOINT="$1"
-      shift
       ;;
     --help|-h)
       usage
@@ -526,7 +534,7 @@ if [[ -n "$TAILSCALE_HOST" ]]; then
   exit 0
 fi
 
-if [[ -n "$REMOTE_HTTP_ENDPOINT" ]]; then
+if [[ $USE_HTTP_REMOTE -eq 1 || -n "$REMOTE_HTTP_ENDPOINT" ]]; then
   run_http_remote "$@"
   exit 0
 fi

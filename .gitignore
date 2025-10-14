@@ -1,6 +1,7 @@
 # Environment
 .venv/
 .env
+.remote-http-endpoint
 
 AGENTS.md
 # Python artifacts

@@ -12,6 +12,11 @@ UNIT_DIR="${HOME}/.config/systemd/user"
 UNIT_PATH="${UNIT_DIR}/${UNIT_NAME}"
 PIXIBIN="${PIXI_BIN:-$(command -v pixi 2>/dev/null || true)}"
 CUDNN_DEFAULT="${HOME}/.local/cudnn8/lib"
+SERVE_PATH="${DROP_SERVICE_SERVE_PATH:-/meeting-notes}"
+
+if [[ "${SERVE_PATH}" != /* ]]; then
+  SERVE_PATH="/${SERVE_PATH}"
+fi
 
 if [[ -z "${PIXIBIN}" ]]; then
   echo "pixi executable not found. Install pixi from https://pixi.sh first." >&2
@@ -59,7 +64,7 @@ echo "[1/4] Installing/updating Pixi GPU environment…"
 "${PIXIBIN}" install -e gpu
 
 if [[ -n "${CUDNN_DIR}" ]]; then
-  echo "[2/4] Writing systemd unit to ${UNIT_PATH} (CUDA_VISIBLE_DEVICES=${CUDA_DEVICE}, CUDNN_COMPAT_DIR=${CUDNN_DIR})"
+echo "[2/4] Writing systemd unit to ${UNIT_PATH} (CUDA_VISIBLE_DEVICES=${CUDA_DEVICE}, CUDNN_COMPAT_DIR=${CUDNN_DIR})"
 else
   echo "[2/4] Writing systemd unit to ${UNIT_PATH} (CUDA_VISIBLE_DEVICES=${CUDA_DEVICE})"
   echo "      Hint: place cuDNN libs under ${CUDNN_DEFAULT} or export CUDNN_COMPAT_DIR before running this helper."
@@ -79,8 +84,8 @@ $(if [[ -n "${CUDNN_DIR}" ]]; then printf 'Environment=CUDNN_COMPAT_DIR=%s\n' "$
 Environment=DROP_SERVER_PORT=8040
 Environment=DROP_MAX_WORKERS=1
 Environment=DROP_SERVER_HOST=127.0.0.1
-Environment=DROP_SERVER_PATH=/meeting-notes
-ExecStart=${PIXIBIN} run --environment gpu -- python -m meeting_notes.drop_service --port 8040 --workers 1 --serve-path /meeting-notes
+Environment=DROP_SERVER_PATH=${SERVE_PATH}
+ExecStart=${PIXIBIN} run --environment gpu -- python -m meeting_notes.drop_service --port 8040 --workers 1 --serve-path ${SERVE_PATH}
 Restart=on-failure
 RestartSec=5
 
@@ -92,9 +97,19 @@ echo "[3/4] Reloading systemd user units and (re)starting ${UNIT_NAME}"
 systemctl --user daemon-reload
 systemctl --user enable --now "${UNIT_NAME}"
 
-echo "[4/4] Configuring Tailscale Serve (/meeting-notes → http://127.0.0.1:8040)"
+echo "[4/4] Configuring Tailscale Serve (${SERVE_PATH} → http://127.0.0.1:8040)"
 tailscale serve --yes --https=443 off >/dev/null 2>&1 || true
-tailscale serve --yes --bg --https=443 --set-path=/meeting-notes http://127.0.0.1:8040
+tailscale serve --yes --bg --https=443 --set-path=${SERVE_PATH} http://127.0.0.1:8040
+
+REMOTE_ENDPOINT_FILE="${PROJECT_ROOT}/.remote-http-endpoint"
+serve_base="$(tailscale serve status 2>/dev/null | head -n1 | awk '{print $1}')"
+if [[ "${serve_base}" == https://* ]]; then
+  remote_endpoint="${serve_base%/}${SERVE_PATH}"
+  printf '%s\n' "${remote_endpoint}" > "${REMOTE_ENDPOINT_FILE}"
+  echo "Saved default remote HTTP endpoint to ${REMOTE_ENDPOINT_FILE}"
+else
+  echo "Warning: unable to detect Tailscale serve URL; set REMOTE_HTTP_ENDPOINT manually if needed." >&2
+fi
 
 echo "Done."
 echo "Check status with: systemctl --user status ${UNIT_NAME}"

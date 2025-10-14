@@ -1,0 +1,39 @@
+╭───────────────────────────── Meeting Notes Kit ──────────────────────────────╮
+│ Audio:                                                                       │
+│ /home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-060841-37725062/se │
+│ ssion-20251013-230830.flac                                                   │
+│ Output:                                                                      │
+│ /home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-060841-37725062/20 │
+│ 251013-230840-session-20251013-230830.md                                     │
+│ Model: large-v3                                                              │
+│ Device: cuda (compute=float16)                                               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Loading model…
+Lightning automatically upgraded your loaded checkpoint from v1.5.4 to v2.5.5. To apply the upgrade to your files permanently, run `python -m pytorch_lightning.utilities.upgrade_checkpoint .pixi/envs/gpu/lib/python3.12/site-packages/whisperx/assets/pytorch_model.bin`
+No language specified, language will be first be detected for each audio file (increases inference time).
+>>Performing voice activity detection using Pyannote...
+Model was trained with pyannote.audio 0.0.1, yours is 3.4.0. Bad things might happen unless you revert pyannote.audio to 0.x.
+Model was trained with torch 1.10.0+cu102, yours is 2.5.1+cu124. Bad things might happen unless you revert torch to 1.x.
+Loading audio…
+Transcribing…
+/home/fschulz/whisper-meeting-notes/.pixi/envs/gpu/lib/python3.12/site-packages/pyannote/audio/utils/reproducibility.py:74: ReproducibilityWarning: TensorFloat-32 (TF32) has been disabled as it might lead to reproducibility issues and lower accuracy.
+It can be re-enabled by calling
+   >>> import torch
+   >>> torch.backends.cuda.matmul.allow_tf32 = True
+   >>> torch.backends.cudnn.allow_tf32 = True
+See https://github.com/pyannote/pyannote-audio/issues/1370 for more details.
+
+  warnings.warn(
+Warning: audio is shorter than 30s, language detection may be inaccurate.
+Detected language: en (0.57) in first 30s of audio...
+HF_TOKEN not found. Skipping diarisation (all text -> Speaker 1).
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃        Start ┃          End ┃ Speaker   ┃ Snippet                            ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ 00:00:00.031 │ 00:00:08.182 │ Speaker 1 │ Okay another test. What's going on │
+│              │              │           │ here? Why it's not working? I      │
+│              │              │           │ don't understand.                  │
+└──────────────┴──────────────┴───────────┴────────────────────────────────────┘
+Notes saved to 
+/home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-060841-37725062/202510
+13-230840-session-20251013-230830.md
