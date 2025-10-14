@@ -108,7 +108,7 @@ run_remote() {
   local positionals=()
   local passthrough=()
   local script_verbose=0
-  local options_with_arg="--model --batch-size --temperature --beam-size"
+  local options_with_arg="--model --batch-size --temperature --beam-size --min-speakers --max-speakers"
   local expect_value=""
   local options_ended=0
 
@@ -286,7 +286,7 @@ run_http_remote() {
   local positionals=()
   local passthrough=()
   local curl_verbose=0
-  local options_with_arg="--model --batch-size --temperature --beam-size"
+  local options_with_arg="--model --batch-size --temperature --beam-size --min-speakers --max-speakers"
   local expect_value=""
   local options_ended=0
 

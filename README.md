@@ -134,6 +134,7 @@ Options:
 - The first positional argument is the audio file.
 - An optional second argument specifies the Markdown output (`.md`).
 - If omitted, the script writes `<audio-stem>-notes-<timestamp>.md` alongside the source file (for example, `recordings/all-hands-notes-20240924-1730.md`).
+- Pass `--min-speakers` / `--max-speakers` when you want to nudge diarisation toward a known speaker count (set both to the same value to force a fixed number).
 
 When `HF_TOKEN` is exported the wrapper announces it and WhisperX runs pyannote diarisation; without the token every segment is tagged as a single default speaker.
 

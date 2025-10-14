@@ -1,0 +1,57 @@
+╭───────────────────────────── Meeting Notes Kit ──────────────────────────────╮
+│ Audio:                                                                       │
+│ /home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-170540-1dbb39d6/py │
+│ annote-sample.wav                                                            │
+│ Output:                                                                      │
+│ /home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-170540-1dbb39d6/20 │
+│ 251014-100540-pyannote-sample.md                                             │
+│ Model: large-v3                                                              │
+│ Device: cuda (compute=float16)                                               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Loading model…
+Lightning automatically upgraded your loaded checkpoint from v1.5.4 to v2.5.5. To apply the upgrade to your files permanently, run `python -m pytorch_lightning.utilities.upgrade_checkpoint .pixi/envs/gpu/lib/python3.12/site-packages/whisperx/assets/pytorch_model.bin`
+No language specified, language will be first be detected for each audio file (increases inference time).
+>>Performing voice activity detection using Pyannote...
+Model was trained with pyannote.audio 0.0.1, yours is 3.4.0. Bad things might happen unless you revert pyannote.audio to 0.x.
+Model was trained with torch 1.10.0+cu102, yours is 2.5.1+cu124. Bad things might happen unless you revert torch to 1.x.
+Loading audio…
+Transcribing…
+/home/fschulz/whisper-meeting-notes/.pixi/envs/gpu/lib/python3.12/site-packages/pyannote/audio/utils/reproducibility.py:74: ReproducibilityWarning: TensorFloat-32 (TF32) has been disabled as it might lead to reproducibility issues and lower accuracy.
+It can be re-enabled by calling
+   >>> import torch
+   >>> torch.backends.cuda.matmul.allow_tf32 = True
+   >>> torch.backends.cudnn.allow_tf32 = True
+See https://github.com/pyannote/pyannote-audio/issues/1370 for more details.
+
+  warnings.warn(
+Detected language: en (1.00) in first 30s of audio...
+Aligning timestamps…
+Running speaker diarisation…
+/home/fschulz/whisper-meeting-notes/.pixi/envs/gpu/lib/python3.12/site-packages/pyannote/audio/models/blocks/pooling.py:104: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at ../aten/src/ATen/native/ReduceOps.cpp:1823.)
+  std = sequences.std(dim=-1, correction=1)
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃        Start ┃          End ┃ Speaker    ┃ Snippet                           ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ 00:00:06.713 │ 00:00:07.074 │ SPEAKER_01 │ Hello?                            │
+│ 00:00:07.634 │ 00:00:08.155 │ SPEAKER_01 │ Hello.                            │
+│ 00:00:08.436 │ 00:00:08.876 │ SPEAKER_01 │ Oh, hello.                        │
+│ 00:00:08.916 │ 00:00:09.798 │ SPEAKER_01 │ I didn't know you were there.     │
+│ 00:00:09.838 │ 00:00:12.501 │ SPEAKER_01 │ Neither did I. Okay, I thought,   │
+│              │              │            │ you know, I heard a beep.         │
+│ 00:00:12.542 │ 00:00:14.184 │ SPEAKER_01 │ This is Diane in New Jersey.      │
+│ 00:00:14.444 │ 00:00:17.769 │ SPEAKER_00 │ And I'm Sheila in Texas,          │
+│              │              │            │ originally from Chicago.          │
+│ 00:00:17.789 │ 00:00:20.113 │ SPEAKER_01 │ Oh, I'm originally from Chicago   │
+│              │              │            │ also.                             │
+│ 00:00:20.173 │ 00:00:21.475 │ SPEAKER_01 │ I'm in New Jersey now, though.    │
+│ 00:00:21.935 │ 00:00:23.978 │ SPEAKER_00 │ Well, there isn't that much       │
+│              │              │            │ difference.                       │
+│ 00:00:24.058 │ 00:00:28.425 │ SPEAKER_00 │ At least, you know, they all call │
+│              │              │            │ me a Yankee down here, so what    │
+│              │              │            │ can I say?                        │
+│ 00:00:28.445 │ 00:00:29.987 │ SPEAKER_01 │ Oh, I don't hear that in New      │
+│              │              │            │ Jersey now.                       │
+└──────────────┴──────────────┴────────────┴───────────────────────────────────┘
+Notes saved to 
+/home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-170540-1dbb39d6/202510
+14-100540-pyannote-sample.md

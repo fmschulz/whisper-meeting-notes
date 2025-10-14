@@ -1,0 +1,41 @@
+╭───────────────────────────── Meeting Notes Kit ──────────────────────────────╮
+│ Audio:                                                                       │
+│ /home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-165601-1043d872/py │
+│ annote-sample.wav                                                            │
+│ Output:                                                                      │
+│ /home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-165601-1043d872/20 │
+│ 251014-095601-pyannote-sample.md                                             │
+│ Model: large-v3                                                              │
+│ Device: cuda (compute=float16)                                               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Loading model…
+Lightning automatically upgraded your loaded checkpoint from v1.5.4 to v2.5.5. To apply the upgrade to your files permanently, run `python -m pytorch_lightning.utilities.upgrade_checkpoint .pixi/envs/gpu/lib/python3.12/site-packages/whisperx/assets/pytorch_model.bin`
+No language specified, language will be first be detected for each audio file (increases inference time).
+>>Performing voice activity detection using Pyannote...
+Model was trained with pyannote.audio 0.0.1, yours is 3.4.0. Bad things might happen unless you revert pyannote.audio to 0.x.
+Model was trained with torch 1.10.0+cu102, yours is 2.5.1+cu124. Bad things might happen unless you revert torch to 1.x.
+Loading audio…
+Transcribing…
+/home/fschulz/whisper-meeting-notes/.pixi/envs/gpu/lib/python3.12/site-packages/pyannote/audio/utils/reproducibility.py:74: ReproducibilityWarning: TensorFloat-32 (TF32) has been disabled as it might lead to reproducibility issues and lower accuracy.
+It can be re-enabled by calling
+   >>> import torch
+   >>> torch.backends.cuda.matmul.allow_tf32 = True
+   >>> torch.backends.cudnn.allow_tf32 = True
+See https://github.com/pyannote/pyannote-audio/issues/1370 for more details.
+
+  warnings.warn(
+Detected language: en (1.00) in first 30s of audio...
+Running speaker diarisation…
+/home/fschulz/whisper-meeting-notes/.pixi/envs/gpu/lib/python3.12/site-packages/pyannote/audio/models/blocks/pooling.py:104: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at ../aten/src/ATen/native/ReduceOps.cpp:1823.)
+  std = sequences.std(dim=-1, correction=1)
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃        Start ┃          End ┃ Speaker    ┃ Snippet                           ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ 00:00:06.713 │ 00:00:29.967 │ SPEAKER_02 │ Hello? Hello. Oh, hello. I didn't │
+│              │              │            │ know you were there. Neither did  │
+│              │              │            │ I. Okay, I thought, you know, I   │
+│              │              │            │ heard a beep. This is…            │
+└──────────────┴──────────────┴────────────┴───────────────────────────────────┘
+Notes saved to 
+/home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-165601-1043d872/202510
+14-095601-pyannote-sample.md

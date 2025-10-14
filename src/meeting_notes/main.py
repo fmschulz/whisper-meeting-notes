@@ -109,6 +109,18 @@ def parse_args() -> argparse.Namespace:
         help="Disable speaker diarisation even if HF_TOKEN is present.",
     )
     parser.add_argument(
+        "--min-speakers",
+        type=int,
+        default=None,
+        help="Lower bound on the number of speakers for diarisation (requires HF_TOKEN).",
+    )
+    parser.add_argument(
+        "--max-speakers",
+        type=int,
+        default=None,
+        help="Upper bound on the number of speakers for diarisation (requires HF_TOKEN).",
+    )
+    parser.add_argument(
         "--temperature",
         type=float,
         default=0.0,
@@ -169,6 +181,20 @@ def build_markdown(
 def main() -> None:
     args = parse_args()
 
+    if args.min_speakers is not None and args.min_speakers < 1:
+        console.print("[bold red]--min-speakers must be >= 1.[/bold red]")
+        raise SystemExit(1)
+    if args.max_speakers is not None and args.max_speakers < 1:
+        console.print("[bold red]--max-speakers must be >= 1.[/bold red]")
+        raise SystemExit(1)
+    if (
+        args.min_speakers is not None
+        and args.max_speakers is not None
+        and args.min_speakers > args.max_speakers
+    ):
+        console.print("[bold red]--min-speakers cannot be greater than --max-speakers.[/bold red]")
+        raise SystemExit(1)
+
     if not args.audio.exists():
         console.print(f"[bold red]Audio file not found:[/bold red] {args.audio}")
         raise SystemExit(1)
@@ -221,6 +247,31 @@ def main() -> None:
     console.print("[cyan]Transcribing…[/cyan]")
     result = model.transcribe(audio, batch_size=args.batch_size)
 
+    alignment_model = metadata = None
+    try:
+        console.print("[cyan]Aligning timestamps…[/cyan]")
+        alignment_model, metadata = whisperx.load_align_model(
+            language_code=result["language"], device=device
+        )
+    except Exception as exc:  # pragma: no cover - optional dependency quirks
+        console.print(f"[yellow]Alignment model unavailable ({exc}). Continuing without refined timestamps.[/yellow]")
+    else:
+        try:
+            aligned = whisperx.align(
+                result["segments"],
+                alignment_model,
+                metadata,
+                audio,
+                device,
+                return_char_alignments=False,
+            )
+        except Exception as exc:  # pragma: no cover
+            console.print(f"[yellow]Alignment failed ({exc}). Using original segment timings.[/yellow]")
+        else:
+            result["segments"] = aligned.get("segments", result["segments"])
+            if "word_segments" in aligned:
+                result["word_segments"] = aligned["word_segments"]
+
     segments = result.get("segments", [])
 
     diarise = not args.no_diarisation
@@ -237,7 +288,20 @@ def main() -> None:
                     use_auth_token=hf_token,
                     device=device,
                 )
-                diarize_result = diarization_pipeline(str(args.audio))
+                diarization_call_kwargs: dict[str, int] = {}
+                if (
+                    args.min_speakers is not None
+                    and args.max_speakers is not None
+                    and args.min_speakers == args.max_speakers
+                ):
+                    diarization_call_kwargs["num_speakers"] = args.min_speakers
+                else:
+                    if args.min_speakers is not None:
+                        diarization_call_kwargs["min_speakers"] = args.min_speakers
+                    if args.max_speakers is not None:
+                        diarization_call_kwargs["max_speakers"] = args.max_speakers
+
+                diarize_result = diarization_pipeline(str(args.audio), **diarization_call_kwargs)
             except Exception as exc:
                 console.print(
                     f"[yellow]Diarisation failed ({exc}). Proceeding without speaker labels.[/yellow]"
