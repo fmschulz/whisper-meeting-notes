@@ -30,15 +30,13 @@ Choose the profile that matches the machine:
 
 ### Capture-only workflow
 
-```bash
-# set once (or pass as first argument to record-and-upload)
-export REMOTE_HTTP_ENDPOINT="https://jgi-ont.tailfd4067.ts.net/meeting-notes"
+Run the capture task and the helper will pull the default HTTPS endpoint from `.remote-http-endpoint` (written by the GPU setup script) automatically:
 
-# single command: record until Ctrl+C, then upload + fetch transcript
+```bash
 pixi run -e capture record-and-upload
 ```
 
-Pass a different endpoint or extra transcription flags as needed:
+Override the endpoint or pass additional transcription flags if needed:
 
 ```bash
 pixi run -e capture record-and-upload -- https://jgi-ont.tailfd4067.ts.net/meeting-notes --model medium

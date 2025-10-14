@@ -376,7 +376,7 @@ run_http_remote() {
   fi
 
   local curl_args=(
-    --silent --show-error --fail
+    --silent --show-error
     --form "file=@${audio_path};filename=${audio_filename}"
     --form-string "output_name=$(basename "$local_output_path")"
   )
@@ -387,9 +387,23 @@ run_http_remote() {
     curl_args+=(--form-string "options=${options_json}")
   fi
 
+  local tmp_response
+  tmp_response="$(mktemp)"
+  local http_status
+  http_status=$(curl "${curl_args[@]}" --write-out "%{http_code}" --output "$tmp_response" "$upload_url")
+  local curl_status=$?
+  if [[ $curl_status -ne 0 ]]; then
+    cat "$tmp_response" >&2 || true
+    rm -f "$tmp_response"
+    echo "Upload failed (curl exit code $curl_status)." >&2
+    exit 1
+  fi
   local response
-  if ! response=$(curl "${curl_args[@]}" "$upload_url"); then
-    echo "Upload failed." >&2
+  response="$(<"$tmp_response")"
+  rm -f "$tmp_response"
+  if [[ "$http_status" != 2* ]]; then
+    echo "Upload failed with HTTP ${http_status}:" >&2
+    echo "$response" >&2
     exit 1
   fi
 

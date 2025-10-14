@@ -16,7 +16,14 @@ if [[ $# -gt 0 && $1 != -* ]]; then
 fi
 
 if [[ -z "$endpoint" ]]; then
-  echo "Remote HTTP endpoint is required (pass as first argument or set REMOTE_HTTP_ENDPOINT)." >&2
+  endpoint_file="${PROJECT_ROOT}/.remote-http-endpoint"
+  if [[ -f "$endpoint_file" ]]; then
+    endpoint="$(tr -d '\r\n' < "$endpoint_file")"
+  fi
+fi
+
+if [[ -z "$endpoint" ]]; then
+  echo "Remote HTTP endpoint is required (pass as first argument, set REMOTE_HTTP_ENDPOINT, or run ./scripts/setup-drop-service.sh to generate .remote-http-endpoint)." >&2
   exit 1
 fi
 
