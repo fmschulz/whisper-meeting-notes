@@ -33,6 +33,47 @@ console = Console()
 DEFAULT_MODEL = "large-v3"
 
 
+def _select_device() -> tuple[str, str, str | None]:
+    if not torch.cuda.is_available():
+        return "cpu", "int8", "CUDA not available"
+
+    try:
+        major, minor = torch.cuda.get_device_capability(0)
+        arch = f"sm_{major}{minor}"
+    except Exception:  # pragma: no cover - defensive fallback
+        major = minor = None
+        arch = ""
+
+    supported_arches: list[str] = []
+    try:
+        supported_arches = torch.cuda.get_arch_list()
+    except Exception:  # pragma: no cover
+        pass
+
+    if arch and supported_arches and arch not in supported_arches:
+        reason = (
+            f"CUDA capability {arch} is not supported by the current PyTorch build "
+            f"(supported architectures: {', '.join(supported_arches)})"
+        )
+        return "cpu", "int8", reason
+
+    try:
+        compiled_version = torch._C._cuda_getCompiledVersion()
+        compiled_major = compiled_version // 1000
+        compiled_minor = (compiled_version % 1000) // 10
+    except Exception:  # pragma: no cover
+        compiled_major = compiled_minor = None
+
+    if major is not None and compiled_major is not None:
+        if (major, minor) > (compiled_major, compiled_minor):
+            reason = (
+                f"GPU capability sm_{major}{minor} exceeds compiled support sm_{compiled_major}{compiled_minor}"
+            )
+            return "cpu", "int8", reason
+
+    return "cuda", "float16", None
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Transcribe a meeting recording with WhisperX and export Markdown notes.",
@@ -142,8 +183,9 @@ def main() -> None:
             output_path = Path.cwd() / output_path
         output_path = output_path.resolve()
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    compute_type = "float16" if device == "cuda" else "int8"
+    device, compute_type, fallback_reason = _select_device()
+    if fallback_reason:
+        console.print(f"[yellow]{fallback_reason}. Falling back to CPU execution.[/yellow]")
 
     console.print(Panel.fit(
         f"Audio: [bold]{args.audio}[/bold]\n"

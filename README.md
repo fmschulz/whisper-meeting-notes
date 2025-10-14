@@ -80,6 +80,18 @@ cp /tmp/libcudnn8/usr/lib/x86_64-linux-gnu/libcudnn*.so.* ~/.local/cudnn8/lib
 
 The helpers look at `MEETING_NOTES_ENV` (default `cpu`) to pick the local Pixi environment and at `TAILSCALE_REMOTE_PIXI_ENV` (default `gpu`) when running on a remote workstation.
 
+> If the installed PyTorch build does not recognise your GPU architecture (for example, newer NVIDIA cards), the toolkit prints a warning and falls back to CPU execution automatically so jobs never fail.
+
+### Drop service bootstrap (workstation)
+
+Run the helper once on the workstation to install dependencies, create the systemd unit, and wire Tailscale Serve:
+
+```bash
+./scripts/setup-drop-service.sh
+```
+
+The service listens on `127.0.0.1:8040`, publishes `https://jgi-ont.tailfd4067.ts.net/meeting-notes`, and pins WhisperX to GPU index 1 (`CUDA_VISIBLE_DEVICES=1`). Check status with `systemctl --user status meeting-notes-drop.service`.
+
 ## Capturing Audio
 
 The toolkit expects you to provide a recorded audio file. Common ways moderators gather the raw audio:
