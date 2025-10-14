@@ -1,0 +1,5 @@
+usage: main.py [-h] [--model MODEL] [--batch-size BATCH_SIZE]
+               [--no-diarisation] [--temperature TEMPERATURE]
+               [--beam-size BEAM_SIZE]
+               audio [output]
+main.py: error: unrecognized arguments: -v

@@ -105,6 +105,7 @@ run_remote() {
   local args=("$@")
   local positionals=()
   local passthrough=()
+  local script_verbose=0
   local options_with_arg="--model --batch-size --temperature --beam-size"
   local expect_value=""
   local options_ended=0
@@ -146,6 +147,10 @@ run_remote() {
     fi
 
     if [[ $options_ended -eq 0 && "$current" == -* ]]; then
+      if [[ "$current" == "-v" ]]; then
+        script_verbose=1
+        continue
+      fi
       passthrough+=("$current")
       continue
     fi
@@ -233,6 +238,10 @@ run_remote() {
     remote_command+=" $(shell_quote "$extra")"
   done
 
+  if [[ $script_verbose -eq 1 ]]; then
+    echo "[debug] Command to execute on remote: ${remote_command}"
+  fi
+
   echo "Starting transcription on ${remote_target}…"
   "${TAILSCALE_BIN}" ssh "${remote_target}" bash -lc "$remote_command"
 
@@ -270,6 +279,7 @@ run_http_remote() {
   local args=("$@")
   local positionals=()
   local passthrough=()
+  local curl_verbose=0
   local options_with_arg="--model --batch-size --temperature --beam-size"
   local expect_value=""
   local options_ended=0
@@ -311,6 +321,10 @@ run_http_remote() {
     fi
 
     if [[ $options_ended -eq 0 && "$current" == -* ]]; then
+      if [[ "$current" == "-v" ]]; then
+        curl_verbose=1
+        continue
+      fi
       passthrough+=("$current")
       continue
     fi
@@ -360,6 +374,9 @@ run_http_remote() {
     --form "file=@${audio_path};filename=${audio_filename}"
     --form-string "output_name=$(basename "$local_output_path")"
   )
+  if [[ $curl_verbose -eq 1 ]]; then
+    curl_args+=(--verbose)
+  fi
   if [[ "${options_json}" != "[]" ]]; then
     curl_args+=(--form-string "options=${options_json}")
   fi
