@@ -2,203 +2,87 @@
 
 Fast tooling for moderators who need high-quality transcripts and diarised notes during panel discussions or workshops. The kit wraps [WhisperX](https://github.com/m-bain/whisperX) inside Pixi-managed environments and exports Markdown tables with per-speaker attribution.
 
-## Features
-
-- Uses the **`large-v3`** Whisper model with beam search and temperature fallback for top accuracy.
-- Optional **speaker diarisation** via `pyannote.audio` when you provide a `HF_TOKEN` (multiple speakers are tagged automatically).
-- Generates Markdown with a timestamped table for easy paste into docs or wikis.
-- Works on laptops or remote GPU workstations; Pixi environments keep dependencies isolated per profile (capture, CPU, GPU).
-
-## Environment Setup (Pixi)
+## Quick Start (Laptop → GPU)
 
 ```bash
-# clone the toolkit
+# one-time setup
 git clone https://github.com/fmschulz/whisper-meeting-notes.git
 cd whisper-meeting-notes
-
-# install pixi once (https://pixi.sh)
 curl -fsSL https://pixi.sh/install.sh | bash
+pixi install -e capture
+
+# record audio (Ctrl+C to stop) and upload to the workstation
+pixi run -e capture record-and-upload -- --min-speakers 2 --max-speakers 4
 ```
 
-Choose the profile that matches the machine:
+- The capture task reads `.remote-http-endpoint` (created by the GPU helper) so you rarely need to set `REMOTE_HTTP_ENDPOINT` manually.
+- `--min-speakers` / `--max-speakers` guide diarisation; adjust or drop them if you want pyannote to decide automatically.
+- Markdown results land in `remote-results/<timestamp>-<audio>.md`.
 
-| Profile | Install command | Primary use |
-|---------|-----------------|-------------|
-| Capture-only | `pixi install -e capture` | Laptops that only record and upload audio |
-| CPU transcription | `pixi install -e cpu` | Run WhisperX locally on CPU |
-| GPU workstation | `pixi install -e gpu` | Full transcription + drop server on an NVIDIA host |
+## When you need more
 
-### Capture-only workflow
-
-Run the capture task and the helper will pull the default HTTPS endpoint from `.remote-http-endpoint` (written by the GPU setup script) automatically:
-
-```bash
-pixi run -e capture record-and-upload
-```
-
-Override the endpoint or pass additional transcription flags if needed:
-
-```bash
-pixi run -e capture record-and-upload -- https://jgi-ont.tailfd4067.ts.net/meeting-notes --model medium
-```
-
-The task uses `ffmpeg` (PulseAudio monitor by default) and immediately calls `meeting-notes.sh --remote-http …` once the capture stops. Transcripts land in `remote-results/<timestamp>-session.md` on the laptop.
-
-### CPU transcription
-
-```bash
-pixi install --environment cpu
-
-# one-off run using Pixi
-your@laptop$ pixi run -e cpu meeting-notes recordings/all-hands.wav
-
-# or via the helper
-your@laptop$ ./scripts/meeting-notes.sh recordings/all-hands.wav
-```
-
-Set `HF_TOKEN` beforehand to enable diarisation, and accept the pyannote terms (https://huggingface.co/pyannote/speaker-diarization-3.1).
-
-### GPU workstation
-
-```bash
-pixi install --environment gpu
-
-# optional: activate the environment for interactive work
-pixi shell -e gpu
-```
-
-The GPU environment uses the official `pytorch` + `nvidia` channels (CUDA 12.4). WhisperX still expects cuDNN runtime libraries, so keep a compatibility copy (for example under `~/.local/cudnn8/lib`) and export `CUDNN_COMPAT_DIR` before starting the drop service. One way to obtain them on Ubuntu:
-
-```bash
-curl -fLo /tmp/libcudnn8.deb   https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/libcudnn8_8.9.7.29-1+cuda12.2_amd64.deb
-mkdir -p ~/.local/cudnn8/lib
-dpkg-deb -x /tmp/libcudnn8.deb /tmp/libcudnn8
-cp /tmp/libcudnn8/usr/lib/x86_64-linux-gnu/libcudnn*.so.* ~/.local/cudnn8/lib
-```
-
-The helpers look at `MEETING_NOTES_ENV` (default `cpu`) to pick the local Pixi environment and at `TAILSCALE_REMOTE_PIXI_ENV` (default `gpu`) when running on a remote workstation.
-
-> If the installed PyTorch build does not recognise your GPU architecture (for example, newer NVIDIA cards), the toolkit prints a warning and falls back to CPU execution automatically so jobs never fail.
-
-### Drop service bootstrap (workstation)
-
-Run the helper once on the workstation to install dependencies, create the systemd unit, and wire Tailscale Serve:
-
-```bash
-./scripts/setup-drop-service.sh
-```
-
-Optionally set `DROP_SERVICE_CUDA_VISIBLE_DEVICES` before running the helper to pin the service to a different GPU index.
-
-The helper writes the detected HTTPS entrypoint into `.remote-http-endpoint`, which the CLI wrappers read automatically (no need to `export REMOTE_HTTP_ENDPOINT` on your laptop unless you override it).
-
-The service listens on `127.0.0.1:8040`, publishes `https://jgi-ont.tailfd4067.ts.net/meeting-notes`, and pins WhisperX to the first supported GPU (auto-detected, falling back to `CUDA_VISIBLE_DEVICES=0`). Check status with `systemctl --user status meeting-notes-drop.service`.
-
-## Capturing Audio
-
-The toolkit expects you to provide a recorded audio file. Common ways moderators gather the raw audio:
-
-- **Use the meeting platform’s recording feature.** Zoom, Meet, and Teams all export `.mp4`/`.m4a` files you can feed directly into the script.
-- **Use the bundled recorder.** Run `./scripts/record-audio.sh` to start an `ffmpeg` capture with sane defaults. Add `--list` to see available inputs (PulseAudio/PipeWire sources on Linux, AVFoundation devices on macOS). Press `Ctrl+C` to stop recording; files land in `recordings/`.
- - **Use the bundled recorder (Linux/macOS).** Run `./scripts/record-audio.sh` to start an `ffmpeg` capture with sane defaults. Add `--list` to see available inputs (PulseAudio/PipeWire sources on Linux, AVFoundation devices on macOS). Press `Ctrl+C` to stop recording; files land in `recordings/`.
- - **Windows recording.** Use the OS recorder, OBS, or Zoom/Teams export to produce `.wav`/`.m4a` and pass it to the script.
-- **Record locally on Wayland/Hyprland.** For quick captures, run `wf-recorder -a -f session.mka` (needs `wf-recorder` + `pamixer`). Press `Ctrl+C` when the meeting ends.
-- **Record from the command line with FFmpeg.** Example for PipeWire default sink and mic:
+- **Run on the GPU workstation**  
   ```bash
-  ffmpeg -f pulse -i default -c:a flac recordings/session.flac
+  pixi install -e gpu
+  ./scripts/setup-drop-service.sh   # writes systemd unit + .remote-http-endpoint
+  systemctl --user status meeting-notes-drop.service
   ```
-  Replace `default` with a monitor source (e.g. `alsa_output.pci-0000_0c_00.4.analog-stereo.monitor`) to capture remote participants.
-- **Hardware recorder.** If the room is mic’d, drop a USB recorder on the mix output and copy the WAV onto your laptop afterward.
+  Set `HF_TOKEN` before starting the service to enable diarisation. The helper pins CUDA to the first supported GPU and writes the HTTPS upload URL.
 
-Once you have an audio/video file, place it anywhere in your workspace and run the transcription step below.
+- **Plain CLI (CPU or GPU)**  
+  ```bash
+  pixi install -e cpu  # or gpu
+  ./scripts/meeting-notes.sh recordings/example.wav \
+    --model large-v3 --min-speakers 2 --max-speakers 4
+  ```
 
-## Usage
+- **Remote HTTP uploads without capture script**  
+  ```bash
+  ./scripts/meeting-notes.sh --remote-http https://host/meeting-notes file.wav
+  ```
+  The wrapper streams the audio, polls job status, and saves Markdown locally.
 
-Record your meeting (any audio format supported by `ffmpeg`), then run:
+- **Troubleshooting diarisation**  
+  - Ensure the drop service sees `HF_TOKEN` (`systemctl --user show meeting-notes-drop.service -p Environment`).
+  - The first diarisation run downloads alignment models (~360 MB). Subsequent jobs reuse the cache.
+  - If very short clips still merge voices, keep `--min-speakers` / `--max-speakers` or extend the recording.
 
-```bash
-./scripts/meeting-notes.sh path/to/recording.m4a
+## CLI Reference
+
+```
+./scripts/meeting-notes.sh <audio> [output.md] [options]
 ```
 
-Windows (PowerShell):
+Key flags:
 
-```powershell
-./scripts/meeting-notes.ps1 path\to\recording.m4a
-```
+- `--model large-v3` (default): choose WhisperX model.
+- `--batch-size 16` (default): inference batch size.
+- `--temperature 0.0` / `--beam-size 5`: decoding controls.
+- `--min-speakers` / `--max-speakers`: hint pyannote about speaker count.
+- `--no-diarisation`: disable speaker attribution even when `HF_TOKEN` is present.
+- `--remote-http URL`: upload via HTTPS instead of local transcription.
+- Use `--` to pass options through the capture helper (example above).
 
-Global convenience (optional):
-- macOS/Linux: `ln -s "$(pwd)/scripts/meeting-notes.sh" "$HOME/bin/meeting-notes"` (ensure `$HOME/bin` is on `PATH`).
-- Windows: add the repo `scripts\` directory to `PATH`, or create a PowerShell function alias.
+### Other handy commands
 
-Options:
-- The first positional argument is the audio file.
-- An optional second argument specifies the Markdown output (`.md`).
-- If omitted, the script writes `<audio-stem>-notes-<timestamp>.md` alongside the source file (for example, `recordings/all-hands-notes-20240924-1730.md`).
-- Pass `--min-speakers` / `--max-speakers` when you want to nudge diarisation toward a known speaker count (set both to the same value to force a fixed number).
+| Scenario | Command |
+|----------|---------|
+| Run locally on CPU | `pixi install -e cpu && pixi run -e cpu meeting-notes recordings/file.wav` |
+| Install GPU stack (interactive use) | `pixi install -e gpu && pixi shell -e gpu` |
+| Bootstrap drop service | `./scripts/setup-drop-service.sh` |
+| Manual upload from any machine | `./scripts/meeting-notes.sh --remote-http https://host/meeting-notes file.wav` |
 
-When `HF_TOKEN` is exported the wrapper announces it and WhisperX runs pyannote diarisation; without the token every segment is tagged as a single default speaker.
+### Recording ideas
 
-Example output snippet:
+- Meeting platform exports (`.mp4`, `.m4a`, `.wav`) work out of the box.
+- `./scripts/record-audio.sh` wraps ffmpeg for quick captures (`--list` shows devices).
+- Hardware recorders or OBS captures can be copied into `recordings/` and passed to the CLI.
 
-```markdown
-| Start | End | Speaker | Transcript |
-|------:|----:|---------|------------|
-| 00:00:01.230 | 00:00:07.840 | Speaker 1 | Welcome everyone, let's review the agenda. |
-| 00:00:08.100 | 00:00:15.420 | Speaker 2 | I'd like to start with the feature rollout timeline... |
-```
+### Remote workflow reminders
 
-### Why use a GPU workstation?
-
-Running `large-v3` on a dedicated GPU can cut transcription time drastically (minutes instead of tens of minutes on long recordings) and frees your laptop during live events. If the GPU host already has the kit cloned, you simply upload the captured audio, run the same script, and pull back the Markdown notes. The GPU path is optional but recommended for multi-hour sessions or back-to-back meetings where turnaround speed matters.
-
-```mermaid
-flowchart TD
-    A["`Capture audio
-- record-audio.sh
-- Zoom export
-- Hardware recorder`"] --> B["`Run meeting-notes.sh
-(Laptop, CPU default)`"]
-    B --> C["`Markdown transcript
-with diarisation`"]
-    A --> D["`Optional: Upload audio
-to GPU workstation`"]
-    D --> E["`Run meeting-notes.sh
-on GPU (set UV_TORCH_VARIANT=cu124)`"]
-    E --> C
-```
-
-## Remote GPU Workflow
-
-If you already have a Tailscale-accessible workstation with this toolkit checked out, you can ship audio straight to it with a single flag on any laptop (Linux/macOS/Windows):
-
-```bash
-./scripts/meeting-notes.sh --tailscale-host gpu-box recordings/all-hands.wav
-```
-
-PowerShell (Windows):
-
-```powershell
-./scripts/meeting-notes.ps1 --tailscale-host gpu-box recordings\all-hands.wav
-```
-
-The wrapper will:
-
-- stream the audio to the remote host over `tailscale ssh`
-- run `meeting-notes.sh` in the remote repository (propagating `HF_TOKEN`, `UV_TORCH_*`, etc.)
-- fetch the generated Markdown back to your machine
-- clean up temporary files on the remote side (set `--tailscale-keep` or `TAILSCALE_KEEP_REMOTE_JOB=1` to inspect them)
-- forward any additional CLI options (for example `--model`, `--beam-size`, or `-- --no-diarisation`).
-
-Configuration knobs:
-
-- `--tailscale-user` / `TAILSCALE_REMOTE_USER`: override the SSH user if it differs from your local login.
-- `--tailscale-repo` / `TAILSCALE_REMOTE_REPO`: path to the toolkit on the remote host (default: `~/whisper-meeting-notes`).
-- `--tailscale-workdir` / `TAILSCALE_REMOTE_WORKDIR`: directory to store per-run artefacts (default: `.remote-jobs` inside the repo).
-- `--remote-http` / `REMOTE_HTTP_ENDPOINT`: HTTPS endpoint for laptops that are not on the tailnet (see Public Uploads below).
-- `CUDNN_COMPAT_DIR` (optional): directory containing `libcudnn*_so.8` compatibility libraries; falls back to `~/.local/cudnn8/lib` and is added to `LD_LIBRARY_PATH` automatically.
-- `TAILSCALE_BIN`: point at a non-standard Tailscale binary location.
-
-The remote workflow requires `tailscale ssh` to be enabled on the workstation. Ensure the host has cloned this repo and can run `./scripts/meeting-notes.sh` locally before relying on the shortcut.
+- `./scripts/meeting-notes.sh --tailscale-host gpu-box file.wav` uses `tailscale ssh` to run inside the remote repo.
+- `--remote-http` mode stores transcripts under `remote-results/` and exposes logs at `dropbox/logs/<job>.log`.
+- Keep `HF_TOKEN` and (if needed) `CUDNN_COMPAT_DIR` in the drop-service unit so diarisation and ONNX alignment succeed.
 
 You can still follow the manual rsync/ssh flow below if you prefer finer control.
 
