@@ -90,7 +90,9 @@ Run the helper once on the workstation to install dependencies, create the syste
 ./scripts/setup-drop-service.sh
 ```
 
-The service listens on `127.0.0.1:8040`, publishes `https://jgi-ont.tailfd4067.ts.net/meeting-notes`, and pins WhisperX to GPU index 1 (`CUDA_VISIBLE_DEVICES=1`). Check status with `systemctl --user status meeting-notes-drop.service`.
+Optionally set `DROP_SERVICE_CUDA_VISIBLE_DEVICES` before running the helper to pin the service to a different GPU index.
+
+The service listens on `127.0.0.1:8040`, publishes `https://jgi-ont.tailfd4067.ts.net/meeting-notes`, and pins WhisperX to the first supported GPU (auto-detected, falling back to `CUDA_VISIBLE_DEVICES=0`). Check status with `systemctl --user status meeting-notes-drop.service`.
 
 ## Capturing Audio
 

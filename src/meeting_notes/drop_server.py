@@ -75,6 +75,13 @@ def _create_job_dir(job_id: str) -> Path:
 def _run_transcription(job: Job) -> None:
     env = os.environ.copy()
     env.setdefault("MEETING_NOTES_ENV", env.get("MEETING_NOTES_ENV", "gpu"))
+    cudnn_dir = env.get("CUDNN_COMPAT_DIR")
+    if cudnn_dir and Path(cudnn_dir).is_dir():
+        existing_ld = env.get("LD_LIBRARY_PATH")
+        ld_parts = [cudnn_dir]
+        if existing_ld:
+            ld_parts.append(existing_ld)
+        env["LD_LIBRARY_PATH"] = ":".join(ld_parts)
 
     command = [
         sys.executable,

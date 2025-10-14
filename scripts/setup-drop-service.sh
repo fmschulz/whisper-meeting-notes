@@ -11,16 +11,59 @@ UNIT_NAME="meeting-notes-drop.service"
 UNIT_DIR="${HOME}/.config/systemd/user"
 UNIT_PATH="${UNIT_DIR}/${UNIT_NAME}"
 PIXIBIN="${PIXI_BIN:-$(command -v pixi 2>/dev/null || true)}"
+CUDNN_DEFAULT="${HOME}/.local/cudnn8/lib"
 
 if [[ -z "${PIXIBIN}" ]]; then
   echo "pixi executable not found. Install pixi from https://pixi.sh first." >&2
   exit 1
 fi
 
+if [[ -n "${DROP_SERVICE_CUDA_VISIBLE_DEVICES:-}" ]]; then
+  CUDA_DEVICE="${DROP_SERVICE_CUDA_VISIBLE_DEVICES}"
+else
+  if ! CUDA_DEVICE="$("${PIXIBIN}" run --environment gpu -- python - <<'PY'
+import warnings
+warnings.filterwarnings("ignore")
+import torch
+
+SUPPORTED_MAX = 90
+selected = None
+for idx in range(torch.cuda.device_count()):
+    major, minor = torch.cuda.get_device_capability(idx)
+    capability = major * 10 + minor
+    if capability <= SUPPORTED_MAX:
+        selected = idx
+        break
+
+if selected is not None:
+    print(selected, end="")
+PY
+)"; then
+    CUDA_DEVICE=""
+  fi
+  CUDA_DEVICE="$(printf '%s' "${CUDA_DEVICE}" | tr -d '[:space:]')"
+  if [[ -z "${CUDA_DEVICE}" ]]; then
+    CUDA_DEVICE="0"
+  fi
+fi
+
+if [[ -n "${CUDNN_COMPAT_DIR:-}" ]]; then
+  CUDNN_DIR="${CUDNN_COMPAT_DIR}"
+elif [[ -d "${CUDNN_DEFAULT}" ]]; then
+  CUDNN_DIR="${CUDNN_DEFAULT}"
+else
+  CUDNN_DIR=""
+fi
+
 echo "[1/4] Installing/updating Pixi GPU environment…"
 "${PIXIBIN}" install -e gpu
 
-echo "[2/4] Writing systemd unit to ${UNIT_PATH}"
+if [[ -n "${CUDNN_DIR}" ]]; then
+  echo "[2/4] Writing systemd unit to ${UNIT_PATH} (CUDA_VISIBLE_DEVICES=${CUDA_DEVICE}, CUDNN_COMPAT_DIR=${CUDNN_DIR})"
+else
+  echo "[2/4] Writing systemd unit to ${UNIT_PATH} (CUDA_VISIBLE_DEVICES=${CUDA_DEVICE})"
+  echo "      Hint: place cuDNN libs under ${CUDNN_DEFAULT} or export CUDNN_COMPAT_DIR before running this helper."
+fi
 mkdir -p "${UNIT_DIR}"
 cat > "${UNIT_PATH}" <<EOF
 [Unit]
@@ -31,7 +74,8 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=${PROJECT_ROOT}
-Environment=CUDA_VISIBLE_DEVICES=1
+Environment=CUDA_VISIBLE_DEVICES=${CUDA_DEVICE}
+$(if [[ -n "${CUDNN_DIR}" ]]; then printf 'Environment=CUDNN_COMPAT_DIR=%s\n' "${CUDNN_DIR}"; fi)
 Environment=DROP_SERVER_PORT=8040
 Environment=DROP_MAX_WORKERS=1
 Environment=DROP_SERVER_HOST=127.0.0.1
