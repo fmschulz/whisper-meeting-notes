@@ -1,0 +1,54 @@
+╭───────────────────────────── Meeting Notes Kit ──────────────────────────────╮
+│ Audio:                                                                       │
+│ /home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-005416-78ff271b/ho │
+│ sts                                                                          │
+│ Output:                                                                      │
+│ /home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-005416-78ff271b/ho │
+│ sts-notes.md                                                                 │
+│ Model: large-v3                                                              │
+│ Device: cpu (compute=int8)                                                   │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Loading model…
+Lightning automatically upgraded your loaded checkpoint from v1.5.4 to v2.5.5. To apply the upgrade to your files permanently, run `python -m pytorch_lightning.utilities.upgrade_checkpoint .pixi/envs/gpu/lib/python3.12/site-packages/whisperx/assets/pytorch_model.bin`
+No language specified, language will be first be detected for each audio file (increases inference time).
+>>Performing voice activity detection using Pyannote...
+Model was trained with pyannote.audio 0.0.1, yours is 3.4.0. Bad things might happen unless you revert pyannote.audio to 0.x.
+Model was trained with torch 1.10.0+cu102, yours is 2.5.1. Bad things might happen unless you revert torch to 1.x.
+Loading audio…
+Traceback (most recent call last):
+  File "/home/fschulz/whisper-meeting-notes/.pixi/envs/gpu/lib/python3.12/site-packages/whisperx/audio.py", line 61, in load_audio
+    out = subprocess.run(cmd, capture_output=True, check=True).stdout
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/fschulz/whisper-meeting-notes/.pixi/envs/gpu/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ffmpeg', '-nostdin', '-threads', '0', '-i', '/home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-005416-78ff271b/hosts', '-f', 's16le', '-ac', '1', '-acodec', 'pcm_s16le', '-ar', '16000', '-']' returned non-zero exit status 183.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/fschulz/whisper-meeting-notes/src/meeting_notes/main.py", line 240, in <module>
+    main()
+  File "/home/fschulz/whisper-meeting-notes/src/meeting_notes/main.py", line 177, in main
+    audio = whisperx.load_audio(str(args.audio))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/fschulz/whisper-meeting-notes/.pixi/envs/gpu/lib/python3.12/site-packages/whisperx/__init__.py", line 26, in load_audio
+    return audio.load_audio(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/fschulz/whisper-meeting-notes/.pixi/envs/gpu/lib/python3.12/site-packages/whisperx/audio.py", line 63, in load_audio
+    raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
+RuntimeError: Failed to load audio: ffmpeg version 8.0 Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 14.3.0 (conda-forge gcc 14.3.0-5)
+  configuration: --prefix=/home/fschulz/whisper-meeting-notes/.pixi/envs/gpu --cc=/home/conda/feedstock_root/build_artifacts/ffmpeg_1758923993009/_build_env/bin/x86_64-conda-linux-gnu-cc --cxx=/home/conda/feedstock_root/build_artifacts/ffmpeg_1758923993009/_build_env/bin/x86_64-conda-linux-gnu-c++ --nm=/home/conda/feedstock_root/build_artifacts/ffmpeg_1758923993009/_build_env/bin/x86_64-conda-linux-gnu-nm --ar=/home/conda/feedstock_root/build_artifacts/ffmpeg_1758923993009/_build_env/bin/x86_64-conda-linux-gnu-ar --disable-doc --enable-openssl --enable-demuxer=dash --enable-hardcoded-tables --enable-libfreetype --enable-libharfbuzz --enable-libfontconfig --enable-libopenh264 --enable-libdav1d --disable-gnutls --enable-libvpx --enable-libass --enable-pthreads --enable-alsa --enable-libpulse --enable-libvpl --enable-vaapi --enable-libopenvino --enable-gpl --enable-libx264 --enable-libx265 --enable-libmp3lame --enable-libaom --enable-libsvtav1 --enable-libxml2 --enable-pic --enable-shared --disable-static --enable-version3 --enable-zlib --enable-libvorbis --enable-libopus --enable-librsvg --enable-ffplay --enable-vulkan --enable-libshaderc --pkg-config=/home/conda/feedstock_root/build_artifacts/ffmpeg_1758923993009/_build_env/bin/pkg-config
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+[in#0 @ 0x5907a2fd2d80] Error opening input: Invalid data found when processing input
+Error opening input file /home/fschulz/whisper-meeting-notes/dropbox/jobs/20251014-005416-78ff271b/hosts.
+Error opening input files: Invalid data found when processing input
+
