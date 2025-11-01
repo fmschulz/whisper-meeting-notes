@@ -1,6 +1,8 @@
 # Environment
 .venv/
+remote-results/*
 .env
+
 
 AGENTS.md
 # Python artifacts
