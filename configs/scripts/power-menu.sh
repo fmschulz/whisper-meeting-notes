@@ -1,22 +1,41 @@
 #!/usr/bin/env bash
+# Power menu with lock, sleep, reboot, shutdown options
+# Uses wofi with proper sizing for all options
+
 set -euo pipefail
 
-options=("Sleep" "Reboot" "Shutdown")
-choice=$(printf '%s\n' "${options[@]}" | wofi --dmenu --prompt "Power" --width 220 --height 200)
+options="🔒 Lock
+😴 Sleep
+🔄 Reboot
+⏻ Shutdown
+🚪 Logout"
+
+choice=$(echo -e "$options" | wofi --dmenu \
+    --prompt "Power" \
+    --width 280 \
+    --height 320 \
+    --cache-file /dev/null \
+    --insensitive)
 
 [[ -z "$choice" ]] && exit 0
 
 case "$choice" in
-  Sleep)
-    systemctl suspend
-    ;;
-  Reboot)
-    systemctl reboot
-    ;;
-  Shutdown)
-    systemctl poweroff
-    ;;
-  *)
-    exit 0
-    ;;
+    *Lock*)
+        hyprlock
+        ;;
+    *Sleep*)
+        systemctl suspend
+        ;;
+    *Reboot*)
+        systemctl reboot
+        ;;
+    *Shutdown*)
+        systemctl poweroff
+        ;;
+    *Logout*)
+        hyprctl dispatch exit
+        ;;
+    *)
+        exit 0
+        ;;
 esac

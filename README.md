@@ -27,11 +27,15 @@ A complete Arch Linux setup with a neo-brutalist Hyprland environment, including
 - **Hyprland**: Wayland compositor with VFR/VRR optimizations
 - **Kitty**: Terminal with 8 neo-brutalist color themes
 - **Waybar**: Status bar with neo-brutalist styling
+  - Modules: workspaces, clock, cpu, memory, temperature, disk, backlight, bluetooth, network, battery, updates indicator, idle inhibitor, power menu
+  - Click-to-manage for bluetooth, brightness scroll, calendar navigation
 - **Starship**: Shell prompt with custom theme
 - **Yazi**: File manager with custom keybindings
 - **Mako**: Notification daemon
-- **Wofi**: Application launcher
+- **Wofi**: Application launcher (+ power menu)
 - **Swww**: Wallpaper daemon with cycling support
+- **Hyprlock**: Lock screen (Super+L)
+- **ReGreet/greetd**: Login manager
 
 ### System Performance & Maintenance
 - **Memory optimization**: Tuned swappiness for high-RAM systems
@@ -57,7 +61,8 @@ arch-hyprland-setup/
 ├── sync-from-nixos.sh       # Sync from NixOS host
 ├── sync-to-repo.sh          # Sync live configs back to repo
 ├── configs/                 # All configuration files
-│   ├── hypr/               # Hyprland configuration
+│   ├── bash/               # Bash configuration (single source of truth)
+│   ├── hypr/               # Hyprland + hyprlock configuration
 │   ├── kitty/              # Kitty terminal + themes
 │   ├── waybar/             # Status bar configuration
 │   ├── starship/           # Prompt configuration
@@ -182,6 +187,7 @@ Updates package lists to match currently installed packages.
 | `Super+Return` | Open terminal |
 | `Super+D` | Application launcher |
 | `Super+Q` | Close window |
+| `Super+L` | Lock screen (hyprlock) |
 | `Super+F` | Toggle fullscreen |
 | `Super+V` | Toggle floating |
 | `Super+1-9` | Switch workspace |
@@ -191,6 +197,36 @@ Updates package lists to match currently installed packages.
 | `Ctrl+Alt+1-8` | Switch Kitty theme |
 
 See `docs/keybindings.md` for the complete list.
+
+## Waybar Modules
+
+| Module | Function | Interaction |
+|--------|----------|-------------|
+| 😴/☕ Idle Inhibitor | Prevent sleep | Click to toggle |
+| 📦 Updates | Pending pacman updates | Click to upgrade |
+| 🧠 CPU | CPU usage % | Hover for details |
+| 🐏 Memory | RAM usage % | Click for GB view |
+| 🌡️ Temperature | CPU temp | - |
+| 💽 Disk | /home usage | Right-click for ncdu |
+| 🌕 Backlight | Screen brightness | Scroll to adjust |
+| 🔊 Audio | Volume level | Click for pavucontrol |
+| 󰂯 Bluetooth | Connection status | Click for blueman |
+| 📶 Network | WiFi/Ethernet | Click for wifi menu |
+| 🔋 Battery | Charge level | Click for time remaining |
+| ⏻ Power | Power menu | Lock/Sleep/Reboot/Shutdown |
+
+## Bash Configuration
+
+The bash configuration lives in `configs/bash/bashrc` - this is the single source of truth.
+
+`~/.bashrc` is just a minimal loader that sources the repo file:
+```bash
+if [[ -f "$HOME/arch-hyprland-setup/configs/bash/bashrc" ]]; then
+    source "$HOME/arch-hyprland-setup/configs/bash/bashrc"
+fi
+```
+
+This ensures all bash customizations are version-controlled in the repo.
 
 ## Troubleshooting
 

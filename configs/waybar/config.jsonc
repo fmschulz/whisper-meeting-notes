@@ -1,12 +1,12 @@
 {
     "layer": "top",
     "position": "top",
-    "height": 36,
+    "height": 42,
     "spacing": 4,
 
     "modules-left": ["hyprland/workspaces", "hyprland/window"],
     "modules-center": ["clock"],
-    "modules-right": ["cpu", "memory", "temperature", "network", "battery", "custom/weather", "pulseaudio", "tray", "custom/power"],
+    "modules-right": ["idle_inhibitor", "custom/updates", "cpu", "memory", "temperature", "disk", "backlight", "pulseaudio", "bluetooth", "network", "battery", "tray", "custom/power"],
 
     "hyprland/workspaces": {
         "disable-scroll": false,
@@ -45,7 +45,7 @@
         "timezone": "America/Los_Angeles",
         "format": "🕐 {:%a %b %d  %I:%M %p}",
         "format-alt": "📅 {:%Y-%m-%d}",
-        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "tooltip-format": "<tt><big>{:%B %Y}</big>\n<small>◀ scroll / click ▶</small>\n{calendar}</tt>",
         "calendar": {
             "mode": "month",
             "mode-mon-col": 3,
@@ -53,20 +53,29 @@
             "on-scroll": 1,
             "on-click-right": "mode",
             "format": {
-                "months": "<span color='#ffead3'><b>{}</b></span>",
-                "days": "<span color='#ecc6d9'><b>{}</b></span>",
-                "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
-                "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
-                "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+                "months": "<span color='#FFBE0B'><b>{}</b></span>",
+                "days": "<span color='#FFFFFF'>{}</span>",
+                "weeks": "<span color='#06FFA5'><b>W{}</b></span>",
+                "weekdays": "<span color='#FB5607'><b>{}</b></span>",
+                "today": "<span color='#FF006E'><b><u>{}</u></b></span>"
             }
         },
         "actions": {
             "on-click-right": "mode",
-            "on-click-forward": "tz_up",
-            "on-click-backward": "tz_down",
+            "on-click-forward": "shift_up",
+            "on-click-backward": "shift_down",
             "on-scroll-up": "shift_up",
             "on-scroll-down": "shift_down"
         }
+    },
+
+    "disk": {
+        "interval": 30,
+        "format": "💽 {percentage_used}%",
+        "format-alt": "💽 {used}/{total}",
+        "tooltip-format": "Home: {used}/{total} ({percentage_used}%)\nFree: {free}",
+        "path": "/home",
+        "on-click-right": "kitty -e ncdu /home"
     },
 
     "cpu": {
@@ -76,9 +85,9 @@
     },
 
     "memory": {
-        "format": "💾 {percentage}%",
-        "format-alt": "💾 {used:0.1f}G/{total:0.1f}G",
-        "tooltip": true,
+        "format": "🐏 {percentage}%",
+        "format-alt": "🐏 {used:0.1f}G/{total:0.1f}G",
+        "tooltip-format": "RAM: {used:0.1f}G / {total:0.1f}G ({percentage}%)\nSwap: {swapUsed:0.1f}G / {swapTotal:0.1f}G",
         "interval": 2
     },
 
@@ -120,11 +129,43 @@
         }
     },
 
-    "custom/weather": {
-        "format": "{text}",
-        "return-type": "json",
-        "interval": 600,
-        "exec": "~/.config/scripts/weather-waybar.sh"
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "format-icons": {
+            "activated": "☕",
+            "deactivated": "😴"
+        },
+        "tooltip-format-activated": "Idle inhibitor: ON (won't sleep)",
+        "tooltip-format-deactivated": "Idle inhibitor: OFF"
+    },
+
+    "custom/updates": {
+        "format": "📦 {}",
+        "interval": 3600,
+        "exec": "checkupdates 2>/dev/null | wc -l || echo 0",
+        "exec-if": "exit 0",
+        "on-click": "kitty -e bash -c 'sudo pacman -Syu; echo; echo Press any key to close...; read -n1'",
+        "tooltip": "Click to update system"
+    },
+
+    "backlight": {
+        "format": "{icon} {percent}%",
+        "format-icons": ["🌑", "🌒", "🌓", "🌔", "🌕"],
+        "on-scroll-up": "brightnessctl set +5%",
+        "on-scroll-down": "brightnessctl set 5%-",
+        "tooltip-format": "Brightness: {percent}%"
+    },
+
+    "bluetooth": {
+        "format": "󰂯",
+        "format-connected": "󰂱 {device_alias}",
+        "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
+        "format-disabled": "󰂲",
+        "format-off": "󰂲",
+        "tooltip-format": "{controller_alias}\t{controller_address}",
+        "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
+        "on-click": "blueman-manager"
     },
 
     "pulseaudio": {

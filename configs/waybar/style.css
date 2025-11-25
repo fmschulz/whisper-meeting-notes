@@ -47,22 +47,32 @@ window#waybar {
     animation: blink 0.5s linear infinite alternate;
 }
 
-/* Modules */
+/* Modules - Base Style */
 #clock,
 #battery,
 #cpu,
 #memory,
-    #custom-weather,
+#disk,
+#temperature,
+#network,
 #pulseaudio,
-#tray,
 #backlight,
+#bluetooth,
+#idle_inhibitor,
+#custom-updates,
+#tray,
 #custom-power {
     background: #FB5607;  /* Orange */
-    color: #FFFFFF;
+    color: #000000;
     border: 3px solid #000000;
     margin: 5px;
     padding: 0 16px;
     box-shadow: 4px 4px 0px #000000;
+}
+
+#disk {
+    background: #3A86FF;  /* Blue */
+    color: #FFFFFF;
 }
 
 #clock {
@@ -102,6 +112,46 @@ window#waybar {
 
 #pulseaudio.muted {
     background: #000000;
+    color: #FFFFFF;
+}
+
+/* Backlight */
+#backlight {
+    background: #FFB700;  /* Amber - like sunshine */
+    color: #000000;
+}
+
+/* Bluetooth */
+#bluetooth {
+    background: #3A86FF;  /* Blue */
+    color: #FFFFFF;
+}
+
+#bluetooth.connected {
+    background: #06FFA5;  /* Mint green */
+    color: #000000;
+}
+
+#bluetooth.disabled,
+#bluetooth.off {
+    background: #666666;
+    color: #FFFFFF;
+}
+
+/* Idle Inhibitor */
+#idle_inhibitor {
+    background: #666666;
+    color: #FFFFFF;
+}
+
+#idle_inhibitor.activated {
+    background: #06FFA5;  /* Mint green - active/awake */
+    color: #000000;
+}
+
+/* Updates */
+#custom-updates {
+    background: #8338EC;  /* Purple */
     color: #FFFFFF;
 }
 
