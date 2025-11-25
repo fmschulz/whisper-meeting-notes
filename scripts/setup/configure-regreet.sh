@@ -19,9 +19,9 @@ step() {
 step "Ensuring greetd/regreet dependencies are installed"
 pacman -S --needed --noconfirm greetd greetd-regreet seatd cage
 
-step "Stopping greetd and seatd"
-systemctl disable --now greetd.service || true
-systemctl disable --now seatd.service || true
+step "Stopping greetd"
+systemctl stop greetd.service 2>/dev/null || true
+systemctl disable greetd.service 2>/dev/null || true
 
 step "Preparing greeter runtime directories"
 install -d -m 755 -o "$GREETER_USER" -g "$GREETER_USER" /var/lib/greetd

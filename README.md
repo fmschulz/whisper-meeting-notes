@@ -1,6 +1,6 @@
 # Arch Linux Hyprland Setup
 
-This directory contains a complete Arch Linux setup extracted from your NixOS configuration, designed to replicate your neo-brutalist Hyprland environment on Arch Linux.
+A complete Arch Linux setup with a neo-brutalist Hyprland environment, including automated system maintenance and backup.
 
 ## Quick Start
 
@@ -17,189 +17,228 @@ This directory contains a complete Arch Linux setup extracted from your NixOS co
    ./apply-configs.sh
    ```
 
-   Need the minimal prerequisites only (for apply-configs.sh)?
-   ```bash
-   chmod +x install-prereqs.sh
-   ./install-prereqs.sh
-   ```
-
 2. **Reboot and log in via ReGreet** (greetd will present the login screen automatically)
 
 3. **Enjoy your neo-brutalist Hyprland setup!**
 
-## Architecture Overview
-
-```mermaid
-graph TD
-    A[System Boot] --> B[greetd.service]
-    B --> C[seatd.service]
-    C --> D[cage Wayland wrapper]
-    D --> E[ReGreet GTK login]
-    E --> |auth success| F[Hyprland session]
-    F --> G[Waybar · Kitty · Wofi · Scripts]
-    F --> H[PipeWire · WirePlumber · Bluetooth]
-    F --> I[Wallpaper + Theming stack]
-    subgraph Automation
-        J[setup.sh]
-        K[apply-configs.sh]
-        L[install-prereqs.sh]
-    end
-    J --> B
-    J --> G
-    J --> H
-    J --> I
-    K --> G
-    K --> I
-```
-
-Prerequisites for apply-configs.sh only:
-- Hyprland, waybar, wofi, kitty, mako, swww, wl-clipboard, cliphist, grim, slurp, pipewire(+wireplumber) installed
-- Fonts: JetBrains Mono Nerd, Noto Emoji (or equivalents)
-
-## Sync From NixOS (optional)
-
-If you are on your NixOS machine and want to regenerate the Arch configs from your live Home‑Manager setup:
-
-```bash
-cd arch-hyprland-setup
-chmod +x sync-from-nixos.sh
-./sync-from-nixos.sh
-```
-
-Details:
-- Copies rendered configs from ~/.config (resolving symlinks) for: hypr, waybar, kitty, starship, yazi, mako, wofi, scripts
-- Updates bashrc from repo (home-manager/config/bashrc)
-- Syncs wallpapers from home-manager/wallpapers into arch-hyprland-setup/wallpapers
-- Review and commit diffs after syncing
-
 ## What's Included
 
-### Core Components
-- **Hyprland**: Wayland compositor with your exact configuration
+### Core Desktop Environment
+- **Hyprland**: Wayland compositor with VFR/VRR optimizations
 - **Kitty**: Terminal with 8 neo-brutalist color themes
 - **Waybar**: Status bar with neo-brutalist styling
-- **Starship**: Shell prompt with custom neo-brutalist theme
-- **Yazi**: File manager with custom theme and keybindings
-- **Mako**: Notification daemon with neo-brutalist styling
+- **Starship**: Shell prompt with custom theme
+- **Yazi**: File manager with custom keybindings
+- **Mako**: Notification daemon
+- **Wofi**: Application launcher
+- **Swww**: Wallpaper daemon with cycling support
+
+### System Performance & Maintenance
+- **Memory optimization**: Tuned swappiness for high-RAM systems
+- **Journal limits**: Capped at 500MB with 1-month retention
+- **Pacman cache cleanup**: Weekly automated cleanup (keeps 2 versions)
+- **Power management**: Auto power-saver on battery (Framework laptop optimized)
+- **Backup automation**: Daily rsync backup over Tailscale
+- **Cache cleanup**: Weekly browser/app cache cleanup
 
 ### Additional Tools
-- **Wofi**: Application launcher
-- **Swww**: Wallpaper daemon
-- **Hyprlock/Hypridle**: Screen locking and idle management
-- **All your development tools**: Git, Docker, Python, Node.js, Rust, etc.
-- **Media tools**: MPV, ImageMagick, FFmpeg
-- **System monitoring**: btop, htop, fastfetch
-- **Login experience**: greetd + regreet configured with a neo-brutalist theme
-- **Shell greeter**: `~/.config/scripts/welcome.sh` runs on each new terminal session with quick tips
-
-### Features Replicated
-- ✅ All keybindings from your NixOS setup
-- ✅ Workspace auto-assignment for applications
-- ✅ Multi-monitor support
-- ✅ Screenshot functionality
-- ✅ Clipboard history
-- ✅ Theme switching for Kitty and VS Code
-- ✅ Custom scripts and aliases
-- ✅ Neo-brutalist color scheme throughout
-- ✅ USB-C storage auto-mounts to /mnt/usb{n} based on the physical port
-
-## Meeting Note Capture
-
-- **`configs/scripts/meeting-notes.sh`**: Desktop helper that transcribes an existing audio file with WhisperX and drops the Markdown notes next to the source recording. Dependencies install automatically on first run.
-- **Android app (`android/recording-transcription/`)**: Minimal Compose UI for capturing on-device audio (`rec-<timestamp>.m4a`) and optional transcripts (`<name>-transcript.txt`) stored together inside the app's recordings directory. Ideal for capturing meetings on the go and syncing the files back into your workstation workflow.
+- Development tools: Git, Docker, Python, Node.js, Rust, Go
+- Media tools: MPV, ImageMagick, FFmpeg
+- System monitoring: btop, htop, fastfetch
+- Modern CLI replacements: eza, bat, ripgrep, fd, zoxide
 
 ## Directory Structure
 
 ```
 arch-hyprland-setup/
 ├── setup.sh                 # Main installation script
+├── apply-configs.sh         # Config-only updates
+├── install-prereqs.sh       # Minimal prerequisites
+├── sync-from-nixos.sh       # Sync from NixOS host
+├── sync-to-repo.sh          # Sync live configs back to repo
 ├── configs/                 # All configuration files
 │   ├── hypr/               # Hyprland configuration
-│   ├── kitty/              # Kitty terminal configuration
-│   ├── waybar/             # Waybar configuration
-│   ├── starship/           # Starship prompt configuration
-│   ├── yazi/               # Yazi file manager configuration
-│   ├── mako/               # Mako notification configuration
-│   ├── wofi/               # Wofi launcher configuration
-│   └── scripts/            # Custom scripts
-├── wallpapers/             # Wallpaper files
+│   ├── kitty/              # Kitty terminal + themes
+│   ├── waybar/             # Status bar configuration
+│   ├── starship/           # Prompt configuration
+│   ├── scripts/            # Custom scripts (including maintenance)
+│   ├── systemd/user/       # User timers (backup, cache-cleanup)
+│   └── ...                 # Other app configs
 ├── packages/               # Package lists
-│   ├── aur-packages.txt    # AUR packages to install
-│   └── pacman-packages.txt # Official repo packages
-├── android/recording-transcription/
-│   ├── app/                # Android Studio module (Compose UI, recorder, ViewModel)
-│   └── README.md           # Mobile app usage notes
-└── docs/                   # Documentation
-    ├── keybindings.md      # Keyboard shortcuts reference
-    └── troubleshooting.md  # Common issues and solutions
+│   ├── pacman-packages.txt     # Official repo packages
+│   ├── pacman-packages-amd.txt # AMD-specific packages
+│   ├── aur-packages.txt        # AUR packages
+│   └── aur-packages-amd.txt    # AMD-specific AUR packages
+├── scripts/setup/          # System setup scripts (run with sudo)
+│   ├── configure-system-performance.sh  # sysctl, journal, paccache
+│   ├── configure-sleep.sh               # Sleep mode configuration
+│   ├── configure-usb-automount.sh       # USB automount rules
+│   └── configure-regreet.sh             # Login manager setup
+├── wallpapers/             # Wallpaper files
+├── docs/                   # Documentation
+│   ├── keybindings.md
+│   └── troubleshooting.md
+└── android/                # Android recording app
 ```
 
-## Manual Installation Steps
+## System Maintenance
 
-If you prefer to install manually or the script fails:
+### Automated Timers
 
-1. **Install packages**:
-   ```bash
-   # Install official packages (includes greetd, regreet, seatd, and cage)
-   sudo pacman -S --needed $(cat packages/pacman-packages.txt)
+The setup enables these systemd timers:
 
-   # Install AUR helper (yay)
-   git clone https://aur.archlinux.org/yay.git
-   cd yay && makepkg -si
+| Timer | Schedule | Description |
+|-------|----------|-------------|
+| `paccache.timer` | Weekly | Cleans pacman cache (keeps 2 versions) |
+| `backup.timer` | Daily | Rsync backup over Tailscale |
+| `cache-cleanup.timer` | Sunday 3AM | Cleans browser/app caches |
 
-   # Install AUR packages
-   yay -S --needed $(cat packages/aur-packages.txt)
-   ```
+Check timer status:
+```bash
+systemctl --user list-timers
+systemctl list-timers  # system timers
+```
 
-2. **Copy configurations and assets**:
-   ```bash
-   mkdir -p ~/.config ~/.local/share ~/.local/bin ~/Pictures/{wallpapers,screenshots}
-   cp -r configs/* ~/.config/
-   chmod +x ~/.config/scripts/*
-   cp wallpapers/* ~/Pictures/wallpapers/
-   ```
-
-3. **Configure bash** (optional but recommended):
-   ```bash
-   cp ~/.bashrc ~/.bashrc.backup 2>/dev/null || true
-   cat >~/.bashrc <<'EOF'
-if [ -f ~/.config/bash/bashrc ]; then
-    source ~/.config/bash/bashrc
-fi
-
-if command -v starship >/dev/null 2>&1; then
-    export STARSHIP_CONFIG=~/.config/starship/starship.toml
-    eval "$(starship init bash)"
-fi
-EOF
-   ```
-
-4. **Set up greetd + regreet manually** (from the repo root):
-   ```bash
-   sudo bash scripts/setup/configure-regreet.sh "$USER"
-   ```
-
-5. **Reboot and log in via ReGreet** to start Hyprland.
-
-## USB-C Automount Configuration
-
-Plugging a USB mass-storage device into any USB-C port now mounts it automatically to `/mnt/usb{n}`, where `n` matches the physical port number derived from the system's USB topology. Key files installed by `setup.sh`:
-
-- Helper script: `/usr/local/lib/arch-hyprland/usb-automount.sh`
-- Config: `/etc/arch-hyprland/usb-automount.conf`
-- Udev rule: `/etc/udev/rules.d/99-arch-hyprland-usb-automount.rules`
-
-You can tweak the mount root, name prefix, owning user/group, and default mount options by editing the config file and reloading the udev rule:
+### Manual Commands
 
 ```bash
-sudoedit /etc/arch-hyprland/usb-automount.conf
-sudo udevadm control --reload
+# System health check
+health                    # or ~/.config/scripts/system-health.sh
+
+# Manual cache cleanup
+cleanup                   # or ~/.config/scripts/cache-cleanup.sh
+
+# Manual backup
+~/.config/scripts/backup.sh
+
+# Remove orphan packages
+pacman -Qtdq | sudo pacman -Rns -
+
+# Check for updates
+checkupdates
 ```
 
-After plugging in a device, verify the selected port and mount point through the journal:
+### Backup Configuration
 
+Edit `~/.config/scripts/backup.sh` to configure:
+- `BACKUP_HOST`: Tailscale IP of backup server (default: 100.115.144.119)
+- `BACKUP_USER`: SSH user on backup server
+- `BACKUP_PATH`: Destination path on backup server
+- `SOURCES`: Directories to backup
+- `EXCLUDES`: Patterns to exclude
+
+View backup logs:
 ```bash
-journalctl -t arch-usb-automount -n 20
+cat ~/.local/state/backup.log
 ```
 
-Unmounting happens automatically on device removal. If a mount stays behind (e.g., device yanked mid-write), unmount manually with `sudo umount /mnt/usb{n}` before reconnecting.
+## Performance Tuning
+
+### What's Configured
+
+| Setting | Value | Why |
+|---------|-------|-----|
+| `vm.swappiness` | 10 | Reduces swap usage on high-RAM systems |
+| `vm.vfs_cache_pressure` | 50 | Keeps more filesystem cache in RAM |
+| `misc.vfr` | true | Variable frame rate (reduces GPU usage when idle) |
+| `misc.vrr` | 1 | Variable refresh rate for compatible monitors |
+
+### Power Profiles
+
+Power profiles auto-switch on AC/battery:
+- **Plugged in**: `balanced`
+- **On battery**: `power-saver`
+
+Manual control:
+```bash
+powerprofilesctl list
+powerprofilesctl set power-saver
+```
+
+## Sync Scripts
+
+### Sync FROM NixOS (if dual-booting)
+```bash
+./sync-from-nixos.sh
+```
+Copies rendered configs from NixOS Home-Manager to this repo.
+
+### Sync TO repo (after making changes)
+```bash
+./sync-to-repo.sh
+```
+Copies live `~/.config` changes back to repo for committing.
+
+### Package snapshot
+```bash
+./scripts/package-snapshot.sh
+```
+Updates package lists to match currently installed packages.
+
+## Keybindings
+
+| Key | Action |
+|-----|--------|
+| `Super+Return` | Open terminal |
+| `Super+D` | Application launcher |
+| `Super+Q` | Close window |
+| `Super+F` | Toggle fullscreen |
+| `Super+V` | Toggle floating |
+| `Super+1-9` | Switch workspace |
+| `Super+Shift+1-9` | Move window to workspace |
+| `Super+W` | Next wallpaper |
+| `Super+C` | Clipboard history |
+| `Ctrl+Alt+1-8` | Switch Kitty theme |
+
+See `docs/keybindings.md` for the complete list.
+
+## Troubleshooting
+
+### Timers not running
+```bash
+# Check if timers are enabled
+systemctl --user list-timers
+
+# Enable if missing
+systemctl --user enable --now backup.timer cache-cleanup.timer
+```
+
+### Backup failing
+```bash
+# Check if host is reachable
+ping 100.115.144.119
+
+# Check Tailscale status
+tailscale status
+
+# View backup log
+cat ~/.local/state/backup.log
+```
+
+### Power profile not switching
+```bash
+# Check udev rule exists
+cat /etc/udev/rules.d/99-power-profile-switch.rules
+
+# Reload rules
+sudo udevadm control --reload-rules
+```
+
+See `docs/troubleshooting.md` for more solutions.
+
+## Manual System Configuration
+
+If you need to re-run just the system configuration (requires sudo):
+```bash
+sudo bash scripts/setup/configure-system-performance.sh $USER
+```
+
+This configures:
+- `/etc/sysctl.d/99-arch-performance.conf` - Memory tuning
+- `/etc/systemd/journald.conf.d/size.conf` - Journal limits
+- `/etc/systemd/system/paccache.{service,timer}` - Cache cleanup
+- `/etc/udev/rules.d/99-power-profile-switch.rules` - Power auto-switch
+
+## License
+
+Personal configuration - use at your own risk.

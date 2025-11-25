@@ -48,6 +48,35 @@ command_exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
+USER_NAME=$(whoami)
+
+# Read newline-separated package names from a file into the provided array ref.
+read_package_file() {
+  local file=$1
+  local -n target=$2
+
+  while IFS= read -r line || [[ -n $line ]]; do
+    [[ -z ${line//[[:space:]]/} ]] && continue
+    [[ ${line} =~ ^# ]] && continue
+    target+=("$line")
+  done <"$file"
+}
+
+# Best-effort detection for AMD systems (GPU or CPU string match).
+is_amd_system() {
+  if command -v lspci >/dev/null 2>&1; then
+    if lspci -nn | grep -qiE 'VGA.*AMD|Display.*AMD|Advanced Micro Devices'; then
+      return 0
+    fi
+  fi
+
+  if grep -qi 'AMD' /proc/cpuinfo 2>/dev/null; then
+    return 0
+  fi
+
+  return 1
+}
+
 # Update system
 print_step "Updating system packages"
 sudo pacman -Syu --noconfirm
@@ -68,11 +97,25 @@ else
   echo -e "${GREEN}✓ yay already installed${NC}"
 fi
 
+amd_profile=0
+if is_amd_system; then
+  amd_profile=1
+  echo -e "${BLUE}ℹ Detected AMD hardware; including AMD-specific package sets.${NC}"
+fi
+
 # Install official packages
 print_step "Installing official repository packages"
 if [[ -f "packages/pacman-packages.txt" ]]; then
-  mapfile -t pacman_packages < packages/pacman-packages.txt
+  pacman_packages=()
+  read_package_file "packages/pacman-packages.txt" pacman_packages
+
+  if (( amd_profile )) && [[ -f "packages/pacman-packages-amd.txt" ]]; then
+    echo -e "${GREEN}✓ Adding packages/pacman-packages-amd.txt${NC}"
+    read_package_file "packages/pacman-packages-amd.txt" pacman_packages
+  fi
+
   if ((${#pacman_packages[@]})); then
+    readarray -t pacman_packages < <(printf '%s\n' "${pacman_packages[@]}" | awk '!seen[$0]++')
     sudo pacman -S --needed --noconfirm "${pacman_packages[@]}"
   fi
 else
@@ -83,8 +126,16 @@ fi
 # Install AUR packages
 print_step "Installing AUR packages"
 if [[ -f "packages/aur-packages.txt" ]]; then
-  mapfile -t aur_packages < packages/aur-packages.txt
+  aur_packages=()
+  read_package_file "packages/aur-packages.txt" aur_packages
+
+  if (( amd_profile )) && [[ -f "packages/aur-packages-amd.txt" ]]; then
+    echo -e "${GREEN}✓ Adding packages/aur-packages-amd.txt${NC}"
+    read_package_file "packages/aur-packages-amd.txt" aur_packages
+  fi
+
   if ((${#aur_packages[@]})); then
+    readarray -t aur_packages < <(printf '%s\n' "${aur_packages[@]}" | awk '!seen[$0]++')
     yay -S --needed --noconfirm "${aur_packages[@]}"
   fi
 else
@@ -102,8 +153,23 @@ mkdir -p ~/Pictures/screenshots
 # Copy configurations
 print_step "Installing configuration files"
 if [[ -d "configs" ]]; then
-  cp -r configs/* ~/.config/
-  echo -e "${GREEN}✓ Configuration files copied${NC}"
+  shopt -s dotglob nullglob
+  for src in "${SCRIPT_DIR}/configs/"*; do
+    name="$(basename "$src")"
+    if [[ -d "$src" ]]; then
+      if [[ "$name" == "applications" ]]; then
+        mkdir -p "${HOME}/.local/share/applications"
+        rsync -a --delete "$src/" "${HOME}/.local/share/applications/"
+      else
+        mkdir -p "${HOME}/.config/${name}"
+        rsync -a --delete "$src/" "${HOME}/.config/${name}/"
+      fi
+    else
+      rsync -a "$src" "${HOME}/.config/"
+    fi
+  done
+  shopt -u dotglob nullglob
+  echo -e "${GREEN}✓ Configuration files copied to ~/.config and ~/.local/share${NC}"
 else
   echo -e "${RED}❌ configs directory not found${NC}"
   exit 1
@@ -162,6 +228,10 @@ sudo systemctl enable --now tailscaled
 print_step "Configuring sleep mode"
 sudo bash "$SCRIPT_DIR/scripts/setup/configure-sleep.sh"
 
+# Configure USB automount for USB-C sticks
+print_step "Configuring USB automount"
+sudo bash "$SCRIPT_DIR/scripts/setup/configure-usb-automount.sh" "$USER_NAME"
+
 # Set up fonts
 print_step "Refreshing font cache"
 fc-cache -fv
@@ -179,8 +249,20 @@ EOF
 
 # Configure greetd with regreet theme
 print_step "Configuring greetd login"
-USER_NAME=$(whoami)
 sudo bash "$SCRIPT_DIR/scripts/setup/configure-regreet.sh" "$USER_NAME"
+
+# Configure system performance (sysctl, journal, paccache timer, power profile)
+print_step "Configuring system performance and maintenance"
+sudo bash "$SCRIPT_DIR/scripts/setup/configure-system-performance.sh" "$USER_NAME"
+
+# Enable user maintenance timers (backup, cache cleanup)
+print_step "Enabling user maintenance timers"
+if [[ -d ~/.config/systemd/user ]]; then
+    systemctl --user daemon-reload
+    systemctl --user enable backup.timer cache-cleanup.timer 2>/dev/null || true
+    echo -e "${GREEN}✓ Backup and cache-cleanup timers enabled${NC}"
+    echo -e "${YELLOW}  Note: Start timers after reboot or run: systemctl --user start backup.timer cache-cleanup.timer${NC}"
+fi
 
 echo
 echo -e "${GREEN}🎉 Installation completed successfully!${NC}"

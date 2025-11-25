@@ -6,7 +6,7 @@
 
     "modules-left": ["hyprland/workspaces", "hyprland/window"],
     "modules-center": ["clock"],
-    "modules-right": ["cpu", "memory", "temperature", "battery", "custom/weather", "pulseaudio", "tray", "custom/power"],
+    "modules-right": ["cpu", "memory", "temperature", "network", "battery", "custom/weather", "pulseaudio", "tray", "custom/power"],
 
     "hyprland/workspaces": {
         "disable-scroll": false,
@@ -86,6 +86,18 @@
         "critical-threshold": 80,
         "format": "🌡️ {temperatureC}°C",
         "format-critical": "🔥 {temperatureC}°C"
+    },
+
+    "network": {
+        "interface-type": "wireless",
+        "interval": 5,
+        "format-wifi": "📶 {essid} ({signalStrength}%)",
+        "format-ethernet": "🔌 {ifname}",
+        "format-disconnected": "📡",
+        "tooltip-format-wifi": "{essid}\nSignal: {signalStrength}%\nIP: {ipaddr}",
+        "tooltip-format-ethernet": "{ifname}\nIP: {ipaddr}",
+        "tooltip-format-disconnected": "Wi-Fi disconnected",
+        "on-click": "~/.config/scripts/wifi-menu.sh"
     },
 
     "battery": {

@@ -1,8 +1,18 @@
 AGENTS.md
 setup_greetd.log
+
+# Secrets and tokens - NEVER commit these
+hf
+*.secret
+*.token
+.secrets
+
 # Meeting recordings and generated transcripts
 recordings/
 **/recordings/
 **/*.m4a
 **/*-notes-*.md
 **/*-transcript.txt
+
+# Backup logs
+*.log

@@ -31,14 +31,19 @@ if [[ -d "${SCRIPT_DIR}/configs" ]]; then
   for src in "${SCRIPT_DIR}/configs/"*; do
     name="$(basename "$src")"
     if [[ -d "$src" ]]; then
-      mkdir -p "${HOME}/.config/${name}"
-      rsync -a --delete "$src/" "${HOME}/.config/${name}/"
+      if [[ "$name" == "applications" ]]; then
+        mkdir -p "${HOME}/.local/share/applications"
+        rsync -a --delete "$src/" "${HOME}/.local/share/applications/"
+      else
+        mkdir -p "${HOME}/.config/${name}"
+        rsync -a --delete "$src/" "${HOME}/.config/${name}/"
+      fi
     else
       rsync -a "$src" "${HOME}/.config/"
     fi
   done
   shopt -u dotglob nullglob
-  ok "Configs synced to ~/.config (existing app data preserved)"
+  ok "Configs synced to ~/.config and ~/.local/share (existing app data preserved)"
 else
   die "configs/ not found next to this script"
 fi
