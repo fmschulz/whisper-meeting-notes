@@ -18,14 +18,16 @@
 | `Super + Return` | Open terminal (Kitty) |
 | `Super + E` | Open file manager (Dolphin) |
 | `Super + D` | Open application launcher (Wofi) |
+| `Super + .` | Grow active window (hold to repeat) |
+| `Super + ,` | Shrink active window (hold to repeat) |
 
 ## Window Navigation
 
 | Key Combination | Action |
 |-----------------|--------|
-| `Super + ←/→/↑/↓` | Move focus between windows |
-| `Super + Alt + ←/→/↑/↓` | Swap windows |
-| `Super + Ctrl + ←/→/↑/↓` | Resize active window |
+| `Alt + ←/→/↑/↓` | Move focus between windows |
+| `Super + Alt + ←/→/↑/↓` | Nudge/move floating window (hold to repeat) |
+| `Super + Shift + Alt + ←/→/↑/↓` | Swap windows |
 
 ## Window Resizing
 
@@ -56,13 +58,15 @@
 | `Super + Shift + S` | Move window to special workspace |
 | `Super + Shift + ←/→` | Switch to previous/next workspace |
 | `Super + Shift + ↑` | Workspace overview |
+| `Super + Shift + Space` | Workspace notes menu |
+| `Super + Shift + N` | Workspace notes menu |
 
 ## Monitor Management
 
 | Key Combination | Action |
 |-----------------|--------|
-| `Super + .` | Focus next monitor |
-| `Super + ,` | Focus previous monitor |
+| `Super + Shift + .` | Focus next monitor |
+| `Super + Shift + ,` | Focus previous monitor |
 | `Super + Ctrl + M` | Monitor connection script |
 
 ## Screenshots
