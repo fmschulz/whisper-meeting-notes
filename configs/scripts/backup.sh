@@ -5,13 +5,19 @@
 set -euo pipefail
 
 # Configuration - adjust these for your setup
-BACKUP_HOST="${BACKUP_HOST:-100.115.144.119}"  # nelli via Tailscale
-BACKUP_USER="${BACKUP_USER:-fmschulz}"
-BACKUP_PATH="${BACKUP_PATH:-/home/fschulz/backup}"
+BACKUP_HOST="${BACKUP_HOST:-}"
+BACKUP_USER="${BACKUP_USER:-$USER}"
+BACKUP_PATH="${BACKUP_PATH:-}"
 LOG_FILE="$HOME/.local/state/backup.log"
 
 # Ensure log directory exists
 mkdir -p "$(dirname "$LOG_FILE")"
+
+# Skip unless configured
+if [[ -z "${BACKUP_HOST}" || -z "${BACKUP_PATH}" ]]; then
+    echo "$(date): Backup skipped - set BACKUP_HOST and BACKUP_PATH" >> "$LOG_FILE"
+    exit 0
+fi
 
 # Check connectivity
 if ! ping -c 1 -W 2 "$BACKUP_HOST" &>/dev/null; then
@@ -25,9 +31,6 @@ SOURCES=(
     "$HOME/Projects"
     "$HOME/arch-hyprland-setup"
     "$HOME/.config"
-    "$HOME/.ssh"
-    "$HOME/.gnupg"
-    "$HOME/.secrets"
 )
 
 # Exclude patterns (caches, build artifacts, large app data)

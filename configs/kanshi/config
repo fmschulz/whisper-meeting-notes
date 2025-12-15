@@ -1,0 +1,21 @@
+# Kanshi display profiles (auto-apply on connect/disconnect)
+# Reference: man kanshi
+
+# Example profile for undocked usage (built-in display only)
+# profile undocked {
+#   output eDP-1 enable scale 1.5 position 0,0
+# }
+
+# Example profile for a single external monitor
+# profile external {
+#   output eDP-1 enable scale 1.5 position 0,0
+#   output HDMI-A-1 enable mode 1920x1080@60 position 0,0
+# }
+
+# Example profile for dock with two displays
+# profile docked {
+#   output eDP-1 enable scale 1.5 position 0,1080
+#   output DP-1 enable mode 1920x1080@60 position 0,0 scale 1.0
+#   output DP-2 enable mode 1920x1080@60 position 1920,0 scale 1.0
+# }
+

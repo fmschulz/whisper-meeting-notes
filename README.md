@@ -1,280 +1,82 @@
-# Arch Linux Hyprland Setup
+# Neo‑Brutalist Arch Hyprland Setup
 
-A complete Arch Linux setup with a neo-brutalist Hyprland environment, including automated system maintenance and backup.
+Automates a full Arch Linux desktop install (Hyprland + Waybar + Kitty + Wofi + PipeWire + greetd/ReGreet), and tracks the dotfiles in `configs/` so you can re-apply them or back them up to GitHub.
 
 ## Quick Start
 
-1. **Run the setup script** (as a regular user, not root):
-   ```bash
-   cd arch-hyprland-setup
-   chmod +x setup.sh
-   ./setup.sh
-   ```
-
-   Or, if you already have packages installed and only want to apply the design configs:
-   ```bash
-   chmod +x apply-configs.sh
-   ./apply-configs.sh
-   ```
-
-2. **Reboot and log in via ReGreet** (greetd will present the login screen automatically)
-
-3. **Enjoy your neo-brutalist Hyprland setup!**
-
-## What's Included
-
-### Core Desktop Environment
-- **Hyprland**: Wayland compositor with VFR/VRR optimizations
-- **Kitty**: Terminal with 8 neo-brutalist color themes
-- **Waybar**: Status bar with neo-brutalist styling
-  - Modules: workspaces, clock, cpu, memory, temperature, disk, backlight, bluetooth, network, battery, updates indicator, idle inhibitor, power menu
-  - Click-to-manage for bluetooth, brightness scroll, calendar navigation
-- **Starship**: Shell prompt with custom theme
-- **Yazi**: File manager with custom keybindings
-- **Mako**: Notification daemon
-- **Wofi**: Application launcher (+ power menu)
-- **Swww**: Wallpaper daemon with cycling support
-- **Hyprlock**: Lock screen (Super+L)
-- **ReGreet/greetd**: Login manager
-
-### System Performance & Maintenance
-- **Memory optimization**: Tuned swappiness for high-RAM systems
-- **Journal limits**: Capped at 500MB with 1-month retention
-- **Pacman cache cleanup**: Weekly automated cleanup (keeps 2 versions)
-- **Power management**: Auto power-saver on battery (Framework laptop optimized)
-- **Backup automation**: Daily rsync backup over Tailscale
-- **Cache cleanup**: Weekly browser/app cache cleanup
-
-### Additional Tools
-- Development tools: Git, Docker, Python, Node.js, Rust, Go
-- Media tools: MPV, ImageMagick, FFmpeg
-- System monitoring: btop, htop, fastfetch
-- Modern CLI replacements: eza, bat, ripgrep, fd, zoxide
-
-## Directory Structure
-
-```
-arch-hyprland-setup/
-├── setup.sh                 # Main installation script
-├── apply-configs.sh         # Config-only updates
-├── install-prereqs.sh       # Minimal prerequisites
-├── sync-from-nixos.sh       # Sync from NixOS host
-├── sync-to-repo.sh          # Sync live configs back to repo
-├── configs/                 # All configuration files
-│   ├── bash/               # Bash configuration (single source of truth)
-│   ├── hypr/               # Hyprland + hyprlock configuration
-│   ├── kitty/              # Kitty terminal + themes
-│   ├── waybar/             # Status bar configuration
-│   ├── starship/           # Prompt configuration
-│   ├── scripts/            # Custom scripts (including maintenance)
-│   ├── systemd/user/       # User timers (backup, cache-cleanup)
-│   └── ...                 # Other app configs
-├── packages/               # Package lists
-│   ├── pacman-packages.txt     # Official repo packages
-│   ├── pacman-packages-amd.txt # AMD-specific packages
-│   ├── aur-packages.txt        # AUR packages
-│   └── aur-packages-amd.txt    # AMD-specific AUR packages
-├── scripts/setup/          # System setup scripts (run with sudo)
-│   ├── configure-system-performance.sh  # sysctl, journal, paccache
-│   ├── configure-sleep.sh               # Sleep mode configuration
-│   ├── configure-usb-automount.sh       # USB automount rules
-│   └── configure-regreet.sh             # Login manager setup
-├── wallpapers/             # Wallpaper files
-├── docs/                   # Documentation
-│   ├── keybindings.md
-│   └── troubleshooting.md
-└── android/                # Android recording app
-```
-
-## System Maintenance
-
-### Automated Timers
-
-The setup enables these systemd timers:
-
-| Timer | Schedule | Description |
-|-------|----------|-------------|
-| `paccache.timer` | Weekly | Cleans pacman cache (keeps 2 versions) |
-| `backup.timer` | Daily | Rsync backup over Tailscale |
-| `cache-cleanup.timer` | Sunday 3AM | Cleans browser/app caches |
-
-Check timer status:
+Full install (packages + configs + services):
 ```bash
-systemctl --user list-timers
-systemctl list-timers  # system timers
+chmod +x setup.sh
+./setup.sh
 ```
 
-### Manual Commands
-
+Config-only (no package installs):
 ```bash
-# System health check
-health                    # or ~/.config/scripts/system-health.sh
-
-# Manual cache cleanup
-cleanup                   # or ~/.config/scripts/cache-cleanup.sh
-
-# Manual backup
-~/.config/scripts/backup.sh
-
-# Remove orphan packages
-pacman -Qtdq | sudo pacman -Rns -
-
-# Check for updates
-checkupdates
+chmod +x apply-configs.sh
+./apply-configs.sh
 ```
 
-### Backup Configuration
-
-Edit `~/.config/scripts/backup.sh` to configure:
-- `BACKUP_HOST`: Tailscale IP of backup server (default: 100.115.144.119)
-- `BACKUP_USER`: SSH user on backup server
-- `BACKUP_PATH`: Destination path on backup server
-- `SOURCES`: Directories to backup
-- `EXCLUDES`: Patterns to exclude
-
-View backup logs:
+Minimal dependencies only (for `apply-configs.sh`):
 ```bash
-cat ~/.local/state/backup.log
+chmod +x install-prereqs.sh
+./install-prereqs.sh
 ```
 
-## Performance Tuning
+## How Config Sync Works
 
-### What's Configured
+`./apply-configs.sh` syncs each top-level folder in `configs/` into `~/.config/<name>/` (and `configs/applications/` into `~/.local/share/applications/`) using `rsync`. Re-running it is expected and will overwrite tracked config files.
 
-| Setting | Value | Why |
-|---------|-------|-----|
-| `vm.swappiness` | 10 | Reduces swap usage on high-RAM systems |
-| `vm.vfs_cache_pressure` | 50 | Keeps more filesystem cache in RAM |
-| `misc.vfr` | true | Variable frame rate (reduces GPU usage when idle) |
-| `misc.vrr` | 1 | Variable refresh rate for compatible monitors |
+## Neovim
 
-### Power Profiles
-
-Power profiles auto-switch on AC/battery:
-- **Plugged in**: `balanced`
-- **On battery**: `power-saver`
-
-Manual control:
+This repo tracks a Kickstart-based Neovim config in `configs/nvim/`. After `./apply-configs.sh`:
 ```bash
-powerprofilesctl list
-powerprofilesctl set power-saver
+nvim
 ```
 
-## Sync Scripts
+Notes:
+- First start installs plugins via `lazy.nvim`.
+- File tree: `<Space>e` (Neo-tree). File browser: `<Space>pv` (`:Oil`).
 
-### Sync FROM NixOS (if dual-booting)
+If you modify `~/.config/nvim` and want to sync it back into the repo:
 ```bash
+./scripts/sync-nvim-to-repo.sh
+```
+
+## Repo Layout
+
+- `setup.sh`: end-to-end provisioning (packages + configs + services).
+- `apply-configs.sh`: rsyncs repo-tracked configs into `~/.config` and `~/.local/share/applications`.
+- `install-prereqs.sh`: minimal packages needed for `apply-configs.sh`.
+- `scripts/setup/`: privileged one-off system setup helpers (greetd/ReGreet, sleep tuning, etc.).
+- `configs/`: tracked dotfiles (Hyprland, Waybar, Kitty, Neovim, PipeWire, systemd user units, scripts, …).
+- `packages/`: package manifests (`pacman-*.txt`, `aur-*.txt`).
+- `docs/`: troubleshooting, keybindings, Neovim notes.
+- `wallpapers/`: curated wallpapers (kept reasonably small; avoid adding huge media blobs).
+
+Tracked config folders (high level):
+- `configs/hypr/`, `configs/waybar/`, `configs/kitty/`, `configs/wofi/`, `configs/mako/`
+- `configs/nvim/` (Kickstart-based Neovim)
+- `configs/pipewire/` (PipeWire/WirePlumber tweaks)
+- `configs/kanshi/` (multi-monitor profiles)
+- `configs/systemd/user/` (user services/timers)
+- `configs/scripts/` (launcher + maintenance scripts)
+- `configs/applications/` (desktop entry overrides)
+
+## Sync From NixOS (optional)
+
+If you maintain the “source of truth” on NixOS/Home‑Manager:
+```bash
+chmod +x sync-from-nixos.sh
 ./sync-from-nixos.sh
 ```
-Copies rendered configs from NixOS Home-Manager to this repo.
 
-### Sync TO repo (after making changes)
+## Maintenance (systemd timers)
+
+Some maintenance is implemented as user services/timers under `configs/systemd/user/`. After applying configs you can inspect:
 ```bash
-./sync-to-repo.sh
-```
-Copies live `~/.config` changes back to repo for committing.
-
-### Package snapshot
-```bash
-./scripts/package-snapshot.sh
-```
-Updates package lists to match currently installed packages.
-
-## Keybindings
-
-| Key | Action |
-|-----|--------|
-| `Super+Return` | Open terminal |
-| `Super+D` | Application launcher |
-| `Super+Q` | Close window |
-| `Super+L` | Lock screen (hyprlock) |
-| `Super+F` | Toggle fullscreen |
-| `Super+V` | Toggle floating |
-| `Super+1-9` | Switch workspace |
-| `Super+Shift+1-9` | Move window to workspace |
-| `Super+W` | Next wallpaper |
-| `Super+C` | Clipboard history |
-| `Ctrl+Alt+1-8` | Switch Kitty theme |
-
-See `docs/keybindings.md` for the complete list.
-
-## Waybar Modules
-
-| Module | Function | Interaction |
-|--------|----------|-------------|
-| 😴/☕ Idle Inhibitor | Prevent sleep | Click to toggle |
-| 📦 Updates | Pending pacman updates | Click to upgrade |
-| 🧠 CPU | CPU usage % | Hover for details |
-| 🐏 Memory | RAM usage % | Click for GB view |
-| 🌡️ Temperature | CPU temp | - |
-| 💽 Disk | /home usage | Right-click for ncdu |
-| 🌕 Backlight | Screen brightness | Scroll to adjust |
-| 🔊 Audio | Volume level | Click for pavucontrol |
-| 󰂯 Bluetooth | Connection status | Click for blueman |
-| 📶 Network | WiFi/Ethernet | Click for wifi menu |
-| 🔋 Battery | Charge level | Click for time remaining |
-| ⏻ Power | Power menu | Lock/Sleep/Reboot/Shutdown |
-
-## Bash Configuration
-
-The bash configuration lives in `configs/bash/bashrc` - this is the single source of truth.
-
-`~/.bashrc` is just a minimal loader that sources the repo file:
-```bash
-if [[ -f "$HOME/arch-hyprland-setup/configs/bash/bashrc" ]]; then
-    source "$HOME/arch-hyprland-setup/configs/bash/bashrc"
-fi
-```
-
-This ensures all bash customizations are version-controlled in the repo.
-
-## Troubleshooting
-
-### Timers not running
-```bash
-# Check if timers are enabled
 systemctl --user list-timers
-
-# Enable if missing
-systemctl --user enable --now backup.timer cache-cleanup.timer
 ```
 
-### Backup failing
-```bash
-# Check if host is reachable
-ping 100.115.144.119
+## Large Files
 
-# Check Tailscale status
-tailscale status
-
-# View backup log
-cat ~/.local/state/backup.log
-```
-
-### Power profile not switching
-```bash
-# Check udev rule exists
-cat /etc/udev/rules.d/99-power-profile-switch.rules
-
-# Reload rules
-sudo udevadm control --reload-rules
-```
-
-See `docs/troubleshooting.md` for more solutions.
-
-## Manual System Configuration
-
-If you need to re-run just the system configuration (requires sudo):
-```bash
-sudo bash scripts/setup/configure-system-performance.sh $USER
-```
-
-This configures:
-- `/etc/sysctl.d/99-arch-performance.conf` - Memory tuning
-- `/etc/systemd/journald.conf.d/size.conf` - Journal limits
-- `/etc/systemd/system/paccache.{service,timer}` - Cache cleanup
-- `/etc/udev/rules.d/99-power-profile-switch.rules` - Power auto-switch
-
-## License
-
-Personal configuration - use at your own risk.
+This repo intentionally avoids committing big binary blobs (AppImages, ISOs, videos, archives). `wallpapers/` is kept, but wallpapers should stay reasonably small.

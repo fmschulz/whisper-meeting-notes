@@ -35,7 +35,7 @@ curl -L --fail -o vscodium-reh-linux-x64-1.104.16282.tar.gz \
 ```bash
 COMMIT=0f0d87fa9e96c856c5212fc86db137ac0d783365
 TARBALL="$HOME/.cache/vscode-server/vscodium-reh-linux-x64-1.104.16282.tar.gz"
-HOSTS=(jgi-ont jgi-interactive09 saul-p1)  # adjust as needed
+HOSTS=(host1 host2)  # SSH config aliases; adjust as needed
 
 for HOST in "${HOSTS[@]}"; do
   echo "==> $HOST"
@@ -63,7 +63,7 @@ Edit `~/.config/Code - OSS/User/settings.json`:
 ```json
 {
     "workbench.colorTheme": "Gruvbox Light Medium",
-    "remote.SSH.configFile": "/home/fschulz/.ssh/config",
+    "remote.SSH.configFile": "/home/<YOUR_USER>/.ssh/config",
     "remote.SSH.serverDownloadUrlTemplate": "https://github.com/VSCodium/vscodium/releases/download/1.104.16282/vscodium-reh-${os}-${arch}-1.104.16282.tar.gz",
     "remote.SSH.experimental.serverBinaryName": "code-server-oss",
     "remote.SSH.remoteServerDownload": "neverDownload"
@@ -81,7 +81,7 @@ Restart Code OSS after saving the settings.
 ## 4. Verify Connection
 
 1. Restart Code OSS to load the updated runtime arguments and settings.
-2. Open the Command Palette → `Remote-SSH: Connect to Host…` → select `jgi-ont` (or another alias from `~/.ssh/config`).
+2. Open the Command Palette → `Remote-SSH: Connect to Host…` → select `host1` (or another alias from `~/.ssh/config`).
 3. Enter your password or passphrase as prompted.
 4. The first successful connection writes to `~/.vscode-server-oss/.<commit>.log` on the remote and spawns the server on a random loopback port (see `listeningOn` line).
 
@@ -107,4 +107,4 @@ When either Code OSS or VSCodium moves to a new commit:
 - **Forums**: [Arch Linux thread – “How to make Open Remote - SSH work for vscode” (Sept 2024)](https://bbs.archlinux.org/viewtopic.php?id=299731)
 - **VSCodium**: [PR #2299 – new version numbering scheme](https://github.com/VSCodium/vscodium/pull/2299)
 
-Documented for hosts `jgi-ont`, `jgi-interactive09`, and `saul-p1`, September 2025.
+Documented September 2025.

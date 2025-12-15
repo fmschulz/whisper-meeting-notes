@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Chromium
+GenericName=Web Browser
+Comment=Access the Internet
+Exec=~/.config/scripts/chromium-safe.sh %U
+Terminal=false
+Type=Application
+Icon=chromium
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;
+StartupNotify=true
