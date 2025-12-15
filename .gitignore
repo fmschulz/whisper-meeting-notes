@@ -16,31 +16,3 @@ recordings/
 
 # Backup logs
 *.log
-
-# Local-only scratch paths / notes
-path
-
-# Agent/assistant metadata
-.claude/
-
-# Common local env files
-.env
-.env.*
-
-# Large binary artifacts (keep wallpapers/ tracked, avoid blobs)
-*.AppImage
-*.appimage
-*.iso
-*.img
-*.qcow2
-*.tar
-*.tar.gz
-*.tgz
-*.zip
-*.7z
-*.dmg
-*.exe
-*.msi
-*.mp4
-*.mkv
-*.avi

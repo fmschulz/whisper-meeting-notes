@@ -48,22 +48,7 @@ command_exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
-# Username (used for some setup steps)
 USER_NAME=$(whoami)
-
-# Detect if we are currently in a Wayland/Hyprland desktop session
-in_active_wayland_session() {
-  if [[ -n "${WAYLAND_DISPLAY:-}" ]] || [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
-    return 0
-  fi
-  # Fallback: check loginctl session type if available
-  if command -v loginctl >/dev/null 2>&1 && [[ -n "${XDG_SESSION_ID:-}" ]]; then
-    if loginctl show-session "$XDG_SESSION_ID" -p Type 2>/dev/null | grep -qi 'Type=wayland'; then
-      return 0
-    fi
-  fi
-  return 1
-}
 
 # Read newline-separated package names from a file into the provided array ref.
 read_package_file() {
@@ -92,21 +77,6 @@ is_amd_system() {
   return 1
 }
 
-# Best-effort detection for Intel (GPU or CPU string match).
-is_intel_system() {
-  if command -v lspci >/dev/null 2>&1; then
-    if lspci -nn | grep -qiE 'VGA.*Intel|Display.*Intel|Intel Corporation'; then
-      return 0
-    fi
-  fi
-
-  if grep -qi 'GenuineIntel' /proc/cpuinfo 2>/dev/null; then
-    return 0
-  fi
-
-  return 1
-}
-
 # Update system
 print_step "Updating system packages"
 sudo pacman -Syu --noconfirm
@@ -128,13 +98,9 @@ else
 fi
 
 amd_profile=0
-intel_profile=0
 if is_amd_system; then
   amd_profile=1
   echo -e "${BLUE}ℹ Detected AMD hardware; including AMD-specific package sets.${NC}"
-elif is_intel_system; then
-  intel_profile=1
-  echo -e "${BLUE}ℹ Detected Intel hardware; including Intel-specific package sets.${NC}"
 fi
 
 # Install official packages
@@ -146,10 +112,6 @@ if [[ -f "packages/pacman-packages.txt" ]]; then
   if (( amd_profile )) && [[ -f "packages/pacman-packages-amd.txt" ]]; then
     echo -e "${GREEN}✓ Adding packages/pacman-packages-amd.txt${NC}"
     read_package_file "packages/pacman-packages-amd.txt" pacman_packages
-  fi
-  if (( intel_profile )) && [[ -f "packages/pacman-packages-intel.txt" ]]; then
-    echo -e "${GREEN}✓ Adding packages/pacman-packages-intel.txt${NC}"
-    read_package_file "packages/pacman-packages-intel.txt" pacman_packages
   fi
 
   if ((${#pacman_packages[@]})); then
@@ -171,10 +133,6 @@ if [[ -f "packages/aur-packages.txt" ]]; then
     echo -e "${GREEN}✓ Adding packages/aur-packages-amd.txt${NC}"
     read_package_file "packages/aur-packages-amd.txt" aur_packages
   fi
-  if (( intel_profile )) && [[ -f "packages/aur-packages-intel.txt" ]]; then
-    echo -e "${GREEN}✓ Adding packages/aur-packages-intel.txt${NC}"
-    read_package_file "packages/aur-packages-intel.txt" aur_packages
-  fi
 
   if ((${#aur_packages[@]})); then
     readarray -t aur_packages < <(printf '%s\n' "${aur_packages[@]}" | awk '!seen[$0]++')
@@ -182,26 +140,6 @@ if [[ -f "packages/aur-packages.txt" ]]; then
   fi
 else
   echo -e "${YELLOW}⚠ packages/aur-packages.txt not found, skipping AUR packages${NC}"
-fi
-
-# Ensure Codex CLI and Microsoft VS Code are installed
-print_step "Setting up Codex CLI and Microsoft VS Code"
-if command_exists yay; then
-  if pacman -Qi openai-codex-bin >/dev/null 2>&1; then
-    echo -e "${GREEN}✓ openai-codex-bin already installed${NC}"
-  elif [[ -x /usr/bin/codex ]] && ! pacman -Qo /usr/bin/codex >/dev/null 2>&1; then
-    echo -e "${YELLOW}⚠ Found existing /usr/bin/codex not owned by a package; skipping openai-codex-bin install${NC}"
-  else
-    yay -S --needed --noconfirm openai-codex-bin
-  fi
-
-  if pacman -Qi visual-studio-code-bin >/dev/null 2>&1; then
-    echo -e "${GREEN}✓ visual-studio-code-bin already installed${NC}"
-  else
-    yay -S --needed --noconfirm visual-studio-code-bin
-  fi
-else
-  echo -e "${YELLOW}⚠ Skipping Codex and VS Code installation because yay is unavailable${NC}"
 fi
 
 # Create necessary directories
@@ -265,10 +203,15 @@ if [[ -f ~/.config/bash/bashrc ]]; then
   # Create new bashrc that sources our config
   cat >~/.bashrc <<'EOF'
 # Arch Linux Hyprland Setup - Custom bashrc
-# Minimal ~/.bashrc; all customizations live in ~/.config/bash/bashrc
-# (including PATH, aliases, prompt, and optional ~/.secrets)
+# Source the custom configuration
 if [ -f ~/.config/bash/bashrc ]; then
     source ~/.config/bash/bashrc
+fi
+
+# Set up starship prompt
+if command -v starship >/dev/null 2>&1; then
+    export STARSHIP_CONFIG=~/.config/starship/starship.toml
+    eval "$(starship init bash)"
 fi
 EOF
   echo -e "${GREEN}✓ Shell configuration set up${NC}"
@@ -277,12 +220,8 @@ fi
 # Enable and start services
 print_step "Enabling system services"
 systemctl --user enable --now pipewire pipewire-pulse wireplumber
-systemctl --user enable xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
-systemctl --user enable --now waybar 2>/dev/null || true
 sudo systemctl enable bluetooth
 sudo systemctl enable NetworkManager
-sudo systemctl enable --now systemd-timesyncd
-sudo timedatectl set-ntp true || true
 sudo systemctl enable --now tailscaled
 
 # Configure suspend mode
@@ -300,25 +239,17 @@ fc-cache -fv
 # Create desktop entry for Hyprland (if using a display manager)
 print_step "Setting up Hyprland desktop entry"
 sudo mkdir -p /usr/share/wayland-sessions
-sudo tee /usr/share/wayland-sessions/hyprland.desktop >/dev/null <<'EOF'
+sudo tee /usr/share/wayland-sessions/hyprland.desktop >/dev/null <<EOF
 [Desktop Entry]
 Name=Hyprland
-Comment=Hyprland Wayland session
-Exec=/usr/bin/systemd-cat -t hyprland-session /usr/bin/dbus-run-session /usr/bin/Hyprland
+Comment=An intelligent dynamic tiling Wayland compositor
+Exec=Hyprland
 Type=Application
-DesktopNames=Hyprland
 EOF
 
 # Configure greetd with regreet theme
 print_step "Configuring greetd login"
-if in_active_wayland_session; then
-  echo -e "${YELLOW}⚠ Active Wayland session detected. Skipping greetd reconfiguration to avoid terminating your session.${NC}"
-  echo -e "${YELLOW}  To apply greeter settings later, run:${NC}"
-  echo -e "    sudo bash \"$SCRIPT_DIR/scripts/setup/configure-regreet.sh\" \"$USER_NAME\""
-  echo -e "${YELLOW}  Then restart greeter from a TTY: sudo systemctl restart seatd greetd${NC}"
-else
-  sudo bash "$SCRIPT_DIR/scripts/setup/configure-regreet.sh" "$USER_NAME"
-fi
+sudo bash "$SCRIPT_DIR/scripts/setup/configure-regreet.sh" "$USER_NAME"
 
 # Configure system performance (sysctl, journal, paccache timer, power profile)
 print_step "Configuring system performance and maintenance"
@@ -344,7 +275,6 @@ echo -e "${YELLOW}║${NC} 2. ${GREEN}Log in via regreet (greetd) to start Hyprl
 echo -e "${YELLOW}║${NC} 3. ${GREEN}Press Super+Return to open terminal${NC}                  ${YELLOW}║${NC}"
 echo -e "${YELLOW}║${NC} 4. ${GREEN}Press Super+D to open application launcher${NC}           ${YELLOW}║${NC}"
 echo -e "${YELLOW}║${NC} 5. ${GREEN}Check docs/keybindings.md for all shortcuts${NC}          ${YELLOW}║${NC}"
-echo -e "${YELLOW}║${NC} 6. ${GREEN}Set up Tailscale: sudo bash scripts/setup/setup-tailscale.sh${NC} ${YELLOW}║${NC}"
 echo -e "${YELLOW}╚══════════════════════════════════════════════════════════════╝${NC}"
 echo
 echo -e "${BLUE}📚 Documentation:${NC}"

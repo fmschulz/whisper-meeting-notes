@@ -120,76 +120,23 @@ sudo pacman -S <package-name>
    pulseaudio --check -v  # Should show "not running"
    ```
 
-#### Volume Keys Do Nothing
-1. The media-key binds call `~/.config/scripts/volume-control.sh`, which now uses `wpctl` by default (PipeWire) and falls back to `pactl` if available. Ensure PipeWire is running:
-   ```bash
-   systemctl --user status pipewire pipewire-pulse wireplumber
-   ```
-2. Test the script directly and watch Waybar volume change:
+#### Volume Keys Change the Wrong Output
+1. When a dock is attached, WirePlumber keeps the dock's digital sink as the default even if the laptop speakers are active. The bundled `~/.config/scripts/volume-control.sh` now promotes the internal codec (`alsa_output.pci-0000_c1_00.6.analog-stereo`) whenever it isn't suspended and then adjusts volume or mute.
+2. Re-run `./apply-configs.sh` (or copy the file manually) so Hyprland picks up the new key bindings:
    ```bash
    ~/.config/scripts/volume-control.sh up
    ~/.config/scripts/volume-control.sh down
    ~/.config/scripts/volume-control.sh mute
    ```
-3. Verify Hyprland sees the key symbols by pressing them while running:
-   ```bash
-   wev   # Look for XF86Audio* events
-   ```
-
-#### Volume Keys Change The Wrong Output
-1. The script adjusts `@DEFAULT_AUDIO_SINK@`. If the wrong device changes, set the correct one as default in `pavucontrol` (Playback/Output Devices → right-click → Set as fallback) or via:
-   ```bash
-   wpctl status           # note the sink ID you want
-   wpctl set-default <ID> # e.g., 48
-   ```
-
-#### Zoom Very Quiet While System Sounds Are Loud
-1. Check Zoom’s stream volume specifically in `pavucontrol` → Playback (it may be low even if the sink is at 100–150%).
-2. Disable “flat volumes” so one quiet app doesn’t drag the whole sink down. This repo ships a drop‑in at `~/.config/pipewire/pipewire-pulse.conf.d/10-disable-flat-volumes.conf`.
-   - Apply configs, then restart audio:
-     ```bash
-     ./apply-configs.sh
-     systemctl --user restart pipewire pipewire-pulse wireplumber
-     ```
-3. Ensure Zoom outputs to the same default sink shown in Waybar (check via the “Output Device” dropdown in Zoom’s audio settings or in `pavucontrol`).
+3. Confirm the internal sink was selected by checking `pactl info`; it should now show `Default Sink: alsa_output.pci-0000_c1_00.6.analog-stereo` while the speakers are in use.
 
 ### Display Issues
 
 #### Wrong Resolution/Scaling
 1. Check available monitors:
    ```bash
-  hyprctl monitors
-  ```
-
-### Apps
-
-#### Chromium: "Profile in use on another computer"
-Chromium stores lock artifacts in the profile directory and ties them to the current hostname. If your hostname changes (e.g., DHCP assigns a transient FQDN), Chromium may think the profile is in use elsewhere.
-
-Fix now (one‑off):
-1. Ensure no Chromium is running:
-   ```bash
-   pgrep -fa chromium || true
+   hyprctl monitors
    ```
-2. Remove stale lock files and relaunch:
-   ```bash
-   rm -f ~/.config/chromium/SingletonLock ~/.config/chromium/SingletonCookie ~/.config/chromium/SingletonSocket
-   chromium
-   ```
-
-Fix permanently (recommended):
-- Use the bundled launcher that auto‑cleans stale locks:
-  - Desktop entry uses `~/.config/scripts/chromium-safe.sh`.
-  - Re‑apply configs if needed:
-    ```bash
-    ./apply-configs.sh
-    ```
-- Set a static hostname so it doesn’t flip with networks:
-  ```bash
-  sudo hostnamectl set-hostname framework12
-  hostnamectl   # should now show a Static hostname
-  ```
-  If your transient hostname still changes and triggers the error, configure your network stack not to override the kernel hostname (e.g., NetworkManager hostname updates) or keep using the safe launcher above.
 
 2. Update monitor config in `~/.config/hypr/hyprland.conf`:
    ```
@@ -282,21 +229,6 @@ HandleLidSwitchDocked=ignore
    ```
 
 ### Network Issues
-
-#### Slow loads in browsers (YouTube takes minutes)
-
-If some sites (especially YouTube / YouTube Music) hang for a long time before loading, it can be caused by proxy auto-detection (WPAD) timing out.
-
-Quick check from a terminal:
-
-```bash
-curl --max-time 3 http://wpad/wpad.dat
-```
-
-If that command spends multiple seconds “Resolving” and then times out, disable proxy auto-detection:
-
-- **Firefox**: Settings → Network Settings → set **No proxy** (or disable “Auto-detect proxy settings for this network”).
-- **Electron YouTube Music app**: this repo ships `configs/youtube-music-flags.conf` with `--no-proxy-server` to skip proxy auto-detection.
 
 #### WiFi Not Working
 1. Check NetworkManager status:

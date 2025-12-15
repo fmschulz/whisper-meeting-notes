@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=YTerMusic
-GenericName=YouTube Music (TUI)
-Comment=Terminal-based YouTube Music player
-Exec=kitty -e ytermusic
-Terminal=false
-Type=Application
-Icon=audio-x-generic
-Categories=AudioVideo;Audio;Player;

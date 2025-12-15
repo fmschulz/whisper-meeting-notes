@@ -1,35 +1,41 @@
 #!/usr/bin/env bash
+# Power menu with lock, sleep, reboot, shutdown options
+# Uses wofi with proper sizing for all options
+
 set -euo pipefail
 
-# Power menu (wofi) for Hyprland.
+options="🔒 Lock
+😴 Sleep
+🔄 Reboot
+⏻ Shutdown
+🚪 Logout"
 
-options=$(
-  cat <<'EOF'
-Lock
-Sleep
-Logout
-Reboot
-Shutdown
-EOF
-)
-
-choice=$(
-  printf '%s\n' "$options" | wofi --dmenu \
+choice=$(echo -e "$options" | wofi --dmenu \
     --prompt "Power" \
-    --style ~/.config/wofi/power-menu.css \
-    --width 240 \
-    --height 300 \
-    --lines 5 \
-    --cache-file /dev/null
-)
+    --width 280 \
+    --height 320 \
+    --cache-file /dev/null \
+    --insensitive)
 
-[[ -z "${choice:-}" ]] && exit 0
+[[ -z "$choice" ]] && exit 0
 
 case "$choice" in
-  Lock) hyprlock ;;
-  Sleep) systemctl suspend ;;
-  Logout) hyprctl dispatch exit ;;
-  Reboot) systemctl reboot ;;
-  Shutdown) systemctl poweroff ;;
+    *Lock*)
+        hyprlock
+        ;;
+    *Sleep*)
+        systemctl suspend
+        ;;
+    *Reboot*)
+        systemctl reboot
+        ;;
+    *Shutdown*)
+        systemctl poweroff
+        ;;
+    *Logout*)
+        hyprctl dispatch exit
+        ;;
+    *)
+        exit 0
+        ;;
 esac
-

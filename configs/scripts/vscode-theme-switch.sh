@@ -45,12 +45,6 @@ echo "$CURRENT_INDEX" >"$CURRENT_THEME_FILE"
 # Get theme name
 THEME_NAME="${THEMES[$CURRENT_INDEX]}"
 
-# Check for required dependencies
-if ! command -v jq >/dev/null 2>&1; then
-  echo "Error: jq is required but not installed" >&2
-  exit 1
-fi
-
 # Apply theme using VS Code CLI
 if command -v code >/dev/null 2>&1; then
   code --install-extension ms-vscode.theme-defaults 2>/dev/null || true
