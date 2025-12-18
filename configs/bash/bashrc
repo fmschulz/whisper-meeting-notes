@@ -246,7 +246,7 @@ alias myip='curl -s ifconfig.me'
 alias pingg='ping -c 5 google.com'
 
 # SSH connections (customize these)
-alias dori="ssh fschulz@jgi-interactive09.jgi.lbl.gov"
+alias dori="ssh -L 8888:localhost:8888 fschulz@jgi-interactive09.jgi.lbl.gov"
 alias saul="ssh fschulz@saul-p1.nersc.gov"
 alias jgi-ont='ssh fschulz@100.84.9.12'
 alias remote-notebook="ssh -N -L 8888:localhost:8888 fschulz@jgi-ont"
@@ -329,6 +329,26 @@ export ENABLE_BACKGROUND_TASKS=1
 # Create directory and cd into it
 mkcd() {
     mkdir -p "$1" && cd "$1"
+}
+
+# Rename a Hyprland workspace.
+# Usage: ws <workspace_number> <new name...>
+ws() {
+    if ! command -v hyprctl >/dev/null 2>&1; then
+        echo "ws: hyprctl not found" >&2
+        return 127
+    fi
+
+    if (( $# < 2 )); then
+        echo "Usage: ws <workspace_number> <new name...>" >&2
+        return 2
+    fi
+
+    local ws_id=$1
+    shift
+    local ws_name=$*
+
+    hyprctl dispatch renameworkspace "$ws_id" "$ws_name"
 }
 
 # Extract any archive
