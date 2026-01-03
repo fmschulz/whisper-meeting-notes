@@ -16,6 +16,10 @@ recordings/
 # Backup logs
 *.log
 
+# Reports and temporary files
+agent_farm_report_*.html
+combined_typechecker_and_linter_problems.txt
+
 # Claude Agent Farm
 .heartbeats/
 .claude_agent_farm_state.json

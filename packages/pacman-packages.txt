@@ -39,7 +39,6 @@ zathura-pdf-mupdf
 zathura
 fastfetch
 btop
-htop
 tree
 unzip
 7zip
@@ -79,7 +78,6 @@ rust
 go
 neovim
 vim
-nano
 sshfs
 imagemagick
 inkscape

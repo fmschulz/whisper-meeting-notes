@@ -345,32 +345,9 @@ alias eb='$EDITOR ~/arch-hyprland-setup/configs/bash/bashrc'
 alias eh='$EDITOR ~/.config/hypr/hyprland.conf'
 alias ek='$EDITOR ~/.config/kitty/kitty.conf'
 
-# Hyprland workspace rename
-ws() {
-    if [[ -z "$1" ]]; then
-        echo "Usage: ws <workspace_number> [name]"
-        echo "  ws 1 Browser    - rename workspace 1 to 'Browser'"
-        echo "  ws 1            - reset workspace 1 to just '1'"
-        return 1
-    fi
-    ~/.config/scripts/workspace-rename.sh rename "$1" "$2"
-}
-
 # System maintenance
 alias health='~/.config/scripts/system-health.sh'
 alias cleanup='~/.config/scripts/cache-cleanup.sh'
-
-# ============================================================================
-# ALIASES - Claude Code
-# ============================================================================
-alias cc="ENABLE_BACKGROUND_TASKS=1 claude --dangerously-skip-permissions"
-
-# Claude Code environment
-export CLAUDE_CODE_ENABLE_UNIFIED_READ_TOOL=1
-export DISABLE_ERROR_REPORTING=1
-export DISABLE_TELEMETRY=1
-export DISABLE_USAGE_REPORTING=1
-export ENABLE_BACKGROUND_TASKS=1
 
 # ============================================================================
 # FUNCTIONS
