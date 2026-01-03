@@ -113,6 +113,21 @@ sudo pacman -S <package-name>
    pactl list sinks
    ```
 
+#### Bluetooth Speaker Not Appearing or Using Wrong Profile
+1. Ensure bluetoothd is active:
+   ```bash
+   sudo systemctl enable --now bluetooth
+   ```
+2. Re-run the auto-connect helper to trust, connect, and promote A2DP as the default sink:
+   ```bash
+   ~/.config/scripts/bluetooth-autoconnect.sh
+   ```
+3. Verify the sink shows up and is default:
+   ```bash
+   wpctl status | grep -A2 "Sinks"
+   pactl info | grep "Default Sink"
+   ```
+
 #### Audio Crackling
 1. Increase buffer size in PipeWire config
 2. Check for conflicting audio systems:

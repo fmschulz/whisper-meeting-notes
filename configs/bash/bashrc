@@ -118,6 +118,18 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias .....='cd ../../../..'
+
+# Claude Code Agent Farm helper
+cc-farm() {
+    local tool="$HOME/.claude/tools/claude_code_agent_farm"
+    local cfg="${1:-$tool/configs/python_config.json}"
+    local prompt="${tool}/prompts/default_prompt_python.txt"
+    shift || true
+    uv run --project "$tool" "$tool/claude_code_agent_farm.py" --path "$PWD" --config "$cfg" --prompt-file "$prompt" "$@"
+}
+
+# Claude Code CLI alias (required by agent farm)
+alias cc="ENABLE_BACKGROUND_TASKS=1 /home/fschulz/.bun/bin/claude --dangerously-skip-permissions"
 alias -- -='cd -'
 
 # ============================================================================
@@ -171,6 +183,33 @@ alias gls='/usr/bin/ls'
 alias gcat='/usr/bin/cat'
 alias ggrep='/usr/bin/grep'
 alias gfind='/usr/bin/find'
+alias gman='/usr/bin/man'
+alias gsed='/usr/bin/sed'
+
+# Additional modern CLI tools (Rust/Go alternatives)
+# sd: simpler sed replacement
+command -v sd &>/dev/null && alias sed='sd'
+
+# ouch: universal archive tool
+if command -v ouch &>/dev/null; then
+    alias compress='ouch compress'
+    alias decompress='ouch decompress'
+fi
+
+# tealdeer: simplified man pages
+command -v tldr &>/dev/null && alias man='tldr'
+
+# xh: HTTPie alternative in Rust
+command -v xh &>/dev/null && alias http='xh'
+
+# just: modern command runner
+command -v just &>/dev/null && alias j='just'
+
+# hexyl: hex viewer
+command -v hexyl &>/dev/null && alias hex='hexyl'
+
+# grex: regex generator from examples
+# Usage: grex 'foo' 'foobar' 'foobaz' -> generates regex
 
 # ============================================================================
 # ALIASES - Git
@@ -248,7 +287,7 @@ alias pingg='ping -c 5 google.com'
 # SSH connections (customize these)
 alias dori="ssh -L 8888:localhost:8888 fschulz@jgi-interactive09.jgi.lbl.gov"
 alias saul="ssh fschulz@saul-p1.nersc.gov"
-alias jgi-ont='ssh fschulz@100.84.9.12'
+alias jo='ssh fschulz@100.84.9.12'
 alias remote-notebook="ssh -N -L 8888:localhost:8888 fschulz@jgi-ont"
 
 # SSH wrapper for better terminal compatibility
@@ -306,6 +345,17 @@ alias eb='$EDITOR ~/arch-hyprland-setup/configs/bash/bashrc'
 alias eh='$EDITOR ~/.config/hypr/hyprland.conf'
 alias ek='$EDITOR ~/.config/kitty/kitty.conf'
 
+# Hyprland workspace rename
+ws() {
+    if [[ -z "$1" ]]; then
+        echo "Usage: ws <workspace_number> [name]"
+        echo "  ws 1 Browser    - rename workspace 1 to 'Browser'"
+        echo "  ws 1            - reset workspace 1 to just '1'"
+        return 1
+    fi
+    ~/.config/scripts/workspace-rename.sh rename "$1" "$2"
+}
+
 # System maintenance
 alias health='~/.config/scripts/system-health.sh'
 alias cleanup='~/.config/scripts/cache-cleanup.sh'
@@ -313,7 +363,7 @@ alias cleanup='~/.config/scripts/cache-cleanup.sh'
 # ============================================================================
 # ALIASES - Claude Code
 # ============================================================================
-alias cc='claude --dangerously-skip-permissions'
+alias cc="ENABLE_BACKGROUND_TASKS=1 claude --dangerously-skip-permissions"
 
 # Claude Code environment
 export CLAUDE_CODE_ENABLE_UNIFIED_READ_TOOL=1
@@ -479,6 +529,17 @@ fi
 if command -v zoxide &>/dev/null; then
     eval "$(zoxide init bash)"
     alias cd='z'
+fi
+
+# Atuin (synced shell history with fuzzy search)
+# Replaces Ctrl+R with powerful history search
+if command -v atuin &>/dev/null; then
+    eval "$(atuin init bash --disable-up-arrow)"
+fi
+
+# Vivid (better LS_COLORS)
+if command -v vivid &>/dev/null; then
+    export LS_COLORS="$(vivid generate catppuccin-mocha)"
 fi
 
 # Direnv (per-directory environment)

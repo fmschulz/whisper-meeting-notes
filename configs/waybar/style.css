@@ -50,16 +50,14 @@ window#waybar {
 /* Modules - Base Style */
 #clock,
 #battery,
-#cpu,
-#memory,
-#disk,
-#temperature,
 #network,
 #pulseaudio,
 #backlight,
 #bluetooth,
 #idle_inhibitor,
 #custom-updates,
+#custom-system-stats,
+#custom-workspace-overview,
 #tray,
 #custom-power {
     background: #FB5607;  /* Orange */
@@ -70,9 +68,28 @@ window#waybar {
     box-shadow: 4px 4px 0px #000000;
 }
 
-#disk {
-    background: #3A86FF;  /* Blue */
+/* Combined system stats module */
+#custom-system-stats {
+    background: #FB5607;  /* Orange */
+    color: #000000;
+}
+
+#custom-system-stats.warning {
+    background: #FFB700;  /* Amber */
+    color: #000000;
+}
+
+#custom-system-stats.critical {
+    background: #FF006E;  /* Hot pink */
     color: #FFFFFF;
+    animation: blink 0.5s linear infinite alternate;
+}
+
+/* Workspace overview button */
+#custom-workspace-overview {
+    background: #06FFA5;  /* Turquoise/Mint */
+    color: #000000;
+    padding: 0 12px;
 }
 
 #clock {

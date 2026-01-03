@@ -1,0 +1,102 @@
+# Git Configuration
+# Source of truth: ~/arch-hyprland-setup/configs/git/config
+# Deploy to: ~/.gitconfig
+
+[user]
+    # Set these in ~/.gitconfig.local (not tracked)
+    # name = Your Name
+    # email = your@email.com
+
+[core]
+    editor = nvim
+    pager = delta
+    autocrlf = input
+    whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+
+[init]
+    defaultBranch = main
+
+[pull]
+    rebase = true
+
+[push]
+    default = current
+    autoSetupRemote = true
+
+[fetch]
+    prune = true
+
+[rebase]
+    autoStash = true
+
+[merge]
+    conflictstyle = zdiff3
+    tool = nvim
+
+[mergetool "nvim"]
+    cmd = nvim -d $LOCAL $REMOTE $MERGED -c '$wincmd w' -c 'wincmd J'
+
+[diff]
+    colorMoved = default
+    algorithm = histogram
+
+# Delta configuration (modern diff viewer)
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true
+    side-by-side = true
+    line-numbers = true
+    syntax-theme = Catppuccin Mocha
+    dark = true
+    hyperlinks = true
+    hyperlinks-file-link-format = "file://{path}:{line}"
+
+[delta "decorations"]
+    commit-decoration-style = blue ol
+    commit-style = raw
+    file-style = omit
+    hunk-header-decoration-style = blue box
+    hunk-header-file-style = red
+    hunk-header-line-number-style = "#067a00"
+    hunk-header-style = file line-number syntax
+
+# Aliases
+[alias]
+    a = add
+    aa = add --all
+    b = branch
+    c = commit
+    cm = commit -m
+    co = checkout
+    cob = checkout -b
+    d = diff
+    ds = diff --staged
+    f = fetch --all --prune
+    l = log --oneline --graph --decorate -20
+    la = log --oneline --graph --decorate --all
+    p = push
+    pf = push --force-with-lease
+    pl = pull --rebase
+    s = status -sb
+    st = stash
+    stp = stash pop
+    undo = reset HEAD~1 --mixed
+    amend = commit --amend --no-edit
+    wip = !git add -A && git commit -m 'WIP'
+    # Show recent branches
+    recent = for-each-ref --sort=-committerdate --count=10 --format='%(refname:short)' refs/heads/
+    # Clean merged branches
+    cleanup = "!git branch --merged | grep -v '\\*\\|main\\|master' | xargs -n 1 git branch -d"
+
+[credential]
+    helper = store
+
+# Uncomment to prefer SSH over HTTPS (requires SSH key setup)
+# [url "git@github.com:"]
+#     insteadOf = https://github.com/
+
+# Include local overrides (user info, work-specific settings)
+[include]
+    path = ~/.gitconfig.local

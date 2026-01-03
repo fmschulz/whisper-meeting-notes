@@ -22,3 +22,8 @@ zoom
 slack-desktop
 bibata-cursor-theme
 quarto
+
+# Modern CLI tools
+choose
+xh
+grex

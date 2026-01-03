@@ -77,8 +77,10 @@ gcc
 cmake
 rust
 go
+neovim
 vim
 nano
+sshfs
 imagemagick
 inkscape
 gimp
@@ -162,3 +164,13 @@ tokei
 hyperfine
 glow
 pacman-contrib
+
+# Modern CLI tools - Rust/Go alternatives
+mold
+sccache
+sd
+ouch
+tealdeer
+vivid
+hexyl
+just

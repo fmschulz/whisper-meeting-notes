@@ -6,7 +6,7 @@
 
     "modules-left": ["hyprland/workspaces", "hyprland/window"],
     "modules-center": ["clock"],
-    "modules-right": ["idle_inhibitor", "custom/updates", "cpu", "memory", "temperature", "disk", "backlight", "pulseaudio", "bluetooth", "network", "battery", "tray", "custom/power"],
+    "modules-right": ["idle_inhibitor", "custom/updates", "custom/system-stats", "backlight", "pulseaudio", "bluetooth", "battery", "tray", "custom/workspace-overview", "custom/power"],
 
     "hyprland/workspaces": {
         "disable-scroll": false,
@@ -69,32 +69,13 @@
         }
     },
 
-    "disk": {
-        "interval": 30,
-        "format": "💽 {percentage_used}%",
-        "format-alt": "💽 {used}/{total}",
-        "tooltip-format": "Home: {used}/{total} ({percentage_used}%)\nFree: {free}",
-        "path": "/home",
-        "on-click-right": "kitty -e ncdu /home"
-    },
-
-    "cpu": {
-        "format": "🧠 {usage}%",
+    "custom/system-stats": {
+        "exec": "~/.config/scripts/system-stats-waybar.sh",
+        "return-type": "json",
+        "interval": 3,
         "tooltip": true,
-        "interval": 2
-    },
-
-    "memory": {
-        "format": "🐏 {percentage}%",
-        "format-alt": "🐏 {used:0.1f}G/{total:0.1f}G",
-        "tooltip-format": "RAM: {used:0.1f}G / {total:0.1f}G ({percentage}%)\nSwap: {swapUsed:0.1f}G / {swapTotal:0.1f}G",
-        "interval": 2
-    },
-
-    "temperature": {
-        "critical-threshold": 80,
-        "format": "🌡️ {temperatureC}°C",
-        "format-critical": "🔥 {temperatureC}°C"
+        "on-click": "kitty -e htop",
+        "on-click-right": "kitty -e ncdu /home"
     },
 
     "network": {
@@ -158,8 +139,8 @@
 
     "bluetooth": {
         "format": "󰂯",
-        "format-connected": "󰂱 {device_alias}",
-        "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
+        "format-connected": "󰂱",
+        "format-connected-battery": "󰂱",
         "format-disabled": "󰂲",
         "format-off": "󰂲",
         "tooltip-format": "{controller_alias}\t{controller_address}",
@@ -188,6 +169,15 @@
     "tray": {
         "icon-size": 18,
         "spacing": 10
+    },
+
+    "custom/workspace-overview": {
+        "exec": "~/.config/scripts/workspace-rename.sh waybar",
+        "return-type": "json",
+        "interval": 5,
+        "tooltip": true,
+        "on-click": "~/.config/scripts/workspace-rename.sh overview",
+        "signal": 8
     },
 
     "custom/power": {
