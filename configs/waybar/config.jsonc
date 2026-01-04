@@ -6,7 +6,7 @@
 
     "modules-left": ["hyprland/workspaces", "hyprland/window"],
     "modules-center": ["clock"],
-    "modules-right": ["idle_inhibitor", "custom/updates", "custom/system-stats", "backlight", "pulseaudio", "bluetooth", "battery", "tray", "custom/workspace-overview", "custom/power"],
+    "modules-right": ["idle_inhibitor", "custom/updates", "custom/system-stats", "backlight", "pulseaudio", "custom/usb", "bluetooth", "battery", "tray", "custom/workspace-overview", "custom/power"],
 
     "hyprland/workspaces": {
         "disable-scroll": false,
@@ -184,5 +184,13 @@
         "format": "⏻",
         "tooltip": "Sleep / Reboot / Shutdown",
         "on-click": "~/.config/scripts/power-menu.sh"
+    },
+    "custom/usb": {
+        "format": "{}",
+        "exec": "~/.config/scripts/usb-monitor.sh",
+        "return-type": "json",
+        "interval": 5,
+        "on-click": "~/.config/scripts/usb-menu.sh",
+        "tooltip": true
     }
 }
