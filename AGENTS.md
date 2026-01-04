@@ -50,6 +50,11 @@ chezmoi apply
 - `configs/hypr/hyprland.conf` - Monitor layout for this machine
 - `packages/pacman-packages-amd.txt` - AMD-specific packages
 
+## Tool Syncing (Claude, Codex, Opencode)
+- Core configurations are tracked in `configs/claude/`, `configs/codex/`, and `configs/opencode/`.
+- Machine-specific logs, credentials, and project-specific environments are ignored.
+- Use `./apply-configs.sh` to deploy the common base of these tools to this machine.
+
 ## Testing on This Machine
 ```bash
 # Reload Hyprland after config changes

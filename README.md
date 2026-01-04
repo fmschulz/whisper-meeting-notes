@@ -54,6 +54,7 @@ A complete Arch Linux setup with a neo-brutalist Hyprland environment, including
 
 ### Additional Tools
 - Development tools: Git, Docker, Python, Node.js, Rust, Go
+- AI & Agent Tools: Claude Code, Codex, Opencode (managed via repo)
 - Media tools: MPV, ImageMagick, FFmpeg
 - System monitoring: btop, htop, fastfetch
 - Modern CLI replacements: See [Modern CLI Tools](#modern-cli-tools) section below
@@ -432,6 +433,28 @@ man → tldr               # simplified man pages
 # Access originals with 'g' prefix
 gls, gcat, gfind, ggrep, gman, gsed
 ```
+
+## AI & Agent Tools
+
+This repository manages configurations, skills, and plugins for various AI agent tools to ensure a consistent experience across machines.
+
+| Tool | Config Location | Managed Content |
+|------|-----------------|-----------------|
+| **Claude Code** | `~/.claude/` | Skills, plugins, core settings, tools |
+| **Codex** | `~/.codex/` | Shared skills, configuration |
+| **Opencode** | `~/.config/opencode/` | Core tool settings and JSON configs |
+
+### Syncing
+- **Sensitive data** (.credentials.json, auth.json, session logs) is **EXCLUDED** from the repository for security.
+- Running `./apply-configs.sh` will automatically sync the managed parts of these directories from the repo to your home directory.
+- For new machines, these tools will have your core skills and plugins ready after the first apply.
+
+### Key Managed Files
+- `configs/claude/skills/`: Custom agent skills and tool definitions.
+- `configs/claude/plugins/`: Installed marketplaces and plugins.
+- `configs/codex/config.toml`: Global codex behavior settings.
+- `configs/opencode/opencode.json`: Opencode agent parameters.
+
 
 ## Waybar Modules
 

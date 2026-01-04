@@ -125,6 +125,10 @@ if [[ -d "${SCRIPT_DIR}/configs/opencode" ]]; then
 	mkdir -p ~/.config/opencode
 	rsync -a "${SCRIPT_DIR}/configs/opencode/" ~/.config/opencode/
 	ok "Opencode configurations synced to ~/.config/opencode"
+	# Also sync to ~/.opencode as some versions use this
+	mkdir -p ~/.opencode
+	rsync -a "${SCRIPT_DIR}/configs/opencode/" ~/.opencode/
+	ok "Opencode configurations synced to ~/.opencode"
 fi
 
 # Initialize tealdeer cache (tldr pages)
