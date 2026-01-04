@@ -13,6 +13,14 @@ recordings/
 **/*-notes-*.md
 **/*-transcript.txt
 
+# Claude, Codex, Opencode secrets
+**/.credentials.json
+**/auth.json
+**/antigravity-accounts.json
+**/history.jsonl
+**/.git/
+**/node_modules/
+
 # Backup logs
 *.log
 

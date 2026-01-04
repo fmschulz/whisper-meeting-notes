@@ -323,6 +323,9 @@ alias pxs="pixi shell"
 alias pxa="pixi add"
 alias pxg="pixi global"
 
+# Chromium - Disable annoying web notifications
+alias chromium='chromium --disable-notifications'
+
 alias mkdir='mkdir -pv'
 alias free='free -h'
 alias path='echo -e ${PATH//:/\\n}'

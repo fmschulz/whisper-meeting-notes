@@ -30,6 +30,10 @@ if [[ -d "${SCRIPT_DIR}/configs" ]]; then
 	shopt -s dotglob nullglob
 	for src in "${SCRIPT_DIR}/configs/"*; do
 		name="$(basename "$src")"
+		# Skip claude and codex as they are handled separately (not in .config)
+		if [[ "$name" == "claude" || "$name" == "codex" ]]; then
+			continue
+		fi
 		if [[ -d "$src" ]]; then
 			if [[ "$name" == "applications" ]]; then
 				mkdir -p "${HOME}/.local/share/applications"
@@ -97,6 +101,30 @@ if [[ -f "${SCRIPT_DIR}/configs/cargo/config.toml" ]]; then
 	mkdir -p ~/.cargo
 	cp "${SCRIPT_DIR}/configs/cargo/config.toml" ~/.cargo/config.toml
 	ok "Cargo config deployed (mold linker, sccache)"
+fi
+
+# Claude, Codex, and Opencode configurations
+log "Syncing tool configurations (Claude, Codex, Opencode)"
+
+# Claude (~/.claude)
+if [[ -d "${SCRIPT_DIR}/configs/claude" ]]; then
+	mkdir -p ~/.claude
+	rsync -a "${SCRIPT_DIR}/configs/claude/" ~/.claude/
+	ok "Claude configurations synced to ~/.claude"
+fi
+
+# Codex (~/.codex)
+if [[ -d "${SCRIPT_DIR}/configs/codex" ]]; then
+	mkdir -p ~/.codex
+	rsync -a "${SCRIPT_DIR}/configs/codex/" ~/.codex/
+	ok "Codex configurations synced to ~/.codex"
+fi
+
+# Opencode (~/.config/opencode is handled by the main loop, but ensure structure)
+if [[ -d "${SCRIPT_DIR}/configs/opencode" ]]; then
+	mkdir -p ~/.config/opencode
+	rsync -a "${SCRIPT_DIR}/configs/opencode/" ~/.config/opencode/
+	ok "Opencode configurations synced to ~/.config/opencode"
 fi
 
 # Initialize tealdeer cache (tldr pages)
