@@ -45,6 +45,9 @@ git rebase origin/main
 chezmoi apply
 ```
 
+### GitHub Interaction
+ALWAYS use the GitHub CLI (`gh`) for authentication and repository operations. Run `gh auth setup-git` to ensure git uses `gh` for credential management. This avoids SSH key issues and ensures smooth interaction across machines.
+
 ### Branch + Chezmoi Notes
 - Each machine maps to its own git branch (e.g., `fw13`, `wsu`).
 - Keep machine branches rebased on `main`; do not merge machine branches into each other.
