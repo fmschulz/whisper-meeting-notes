@@ -17,6 +17,7 @@ This `main` branch contains shared configuration and scripts used by all machine
 3. **Machine-specific changes**: If a change is specific to hardware or OS (e.g., Ubuntu paths, specific GPU drivers), commit it to the respective machine branch.
 4. **Synchronization**: Periodically rebase machine branches onto `main` to pull in shared updates.
 5. **Deployment**: Use `./apply-configs.sh` to sync repository configs to the system.
+6. **GitHub Interaction**: ALWAYS use the GitHub CLI (`gh`) for authentication and repository operations. Run `gh auth setup-git` to ensure git uses `gh` for credential management. This avoids SSH key issues and ensures smooth interaction across machines.
 
 ## Project Structure
 ```
