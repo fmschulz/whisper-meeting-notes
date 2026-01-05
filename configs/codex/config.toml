@@ -7,7 +7,7 @@ skills = true
 [projects."/home/fschulz/apps/flashforge"]
 trust_level = "trusted"
 
-[projects."/home/fschulz/arch-hyprland-setup"]
+[projects."/home/fschulz/controlcenter"]
 trust_level = "trusted"
 
 [projects."/home/fschulz/dev/meeting-notes-kit"]

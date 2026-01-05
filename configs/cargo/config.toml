@@ -1,5 +1,5 @@
 # Cargo Configuration
-# Source of truth: ~/arch-hyprland-setup/configs/cargo/config.toml
+# Source of truth: ~/controlcenter/configs/cargo/config.toml
 # Deploy to: ~/.cargo/config.toml
 
 # Use mold linker for significantly faster linking (10-20x faster than ld)

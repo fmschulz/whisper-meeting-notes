@@ -1,5 +1,5 @@
 # Git Configuration
-# Source of truth: ~/arch-hyprland-setup/configs/git/config
+# Source of truth: ~/controlcenter/configs/git/config
 # Deploy to: ~/.gitconfig
 
 [user]

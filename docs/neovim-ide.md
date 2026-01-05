@@ -9,7 +9,7 @@ A powerful LazyVim-based Neovim configuration with full IDE capabilities, SSH re
 sudo pacman -S neovim lazygit ripgrep fd sshfs
 
 # Create symlink (setup.sh does this automatically)
-ln -sf ~/arch-hyprland-setup/configs/nvim ~/.config/nvim
+ln -sf ~/controlcenter/configs/nvim ~/.config/nvim
 
 # Launch Neovim - plugins will auto-install on first run
 nvim

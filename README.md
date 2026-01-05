@@ -6,7 +6,7 @@ A complete Arch Linux setup with a neo-brutalist Hyprland environment, including
 
 1. **Run the setup script** (as a regular user, not root):
    ```bash
-   cd arch-hyprland-setup
+   cd controlcenter
    chmod +x setup.sh
    ./setup.sh
    ```
@@ -62,7 +62,7 @@ A complete Arch Linux setup with a neo-brutalist Hyprland environment, including
 ## Directory Structure
 
 ```
-arch-hyprland-setup/
+controlcenter/
 ├── setup.sh                 # Main installation script
 ├── apply-configs.sh         # Config-only updates
 ├── install-prereqs.sh       # Minimal prerequisites
@@ -479,8 +479,8 @@ The bash configuration lives in `configs/bash/bashrc` - this is the single sourc
 
 `~/.bashrc` is just a minimal loader that sources the repo file:
 ```bash
-if [[ -f "$HOME/arch-hyprland-setup/configs/bash/bashrc" ]]; then
-    source "$HOME/arch-hyprland-setup/configs/bash/bashrc"
+if [[ -f "$HOME/controlcenter/configs/bash/bashrc" ]]; then
+    source "$HOME/controlcenter/configs/bash/bashrc"
 fi
 ```
 

@@ -1,6 +1,6 @@
 # Arch Linux Hyprland Setup - Bash Configuration
 # Author: fschulz
-# Source of truth: ~/arch-hyprland-setup/configs/bash/bashrc
+# Source of truth: ~/controlcenter/configs/bash/bashrc
 
 # ============================================================================
 # EARLY EXIT FOR NON-INTERACTIVE SHELLS
@@ -344,7 +344,7 @@ alias clipboard='cliphist list | wofi --dmenu | cliphist decode | wl-copy'
 alias clipclear='cliphist wipe'
 
 # Quick edit configs
-alias eb='$EDITOR ~/arch-hyprland-setup/configs/bash/bashrc'
+alias eb='$EDITOR ~/controlcenter/configs/bash/bashrc'
 alias eh='$EDITOR ~/.config/hypr/hyprland.conf'
 alias ek='$EDITOR ~/.config/kitty/kitty.conf'
 

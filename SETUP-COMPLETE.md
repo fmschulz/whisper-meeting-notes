@@ -35,13 +35,13 @@ Your NixOS configuration has been successfully extracted and converted to a comp
 
 1. **Copy to your Arch system**:
    ```bash
-   # Copy the entire arch-hyprland-setup directory to your Arch Linux machine
-   scp -r arch-hyprland-setup/ user@arch-machine:~/
+   # Copy the entire controlcenter directory to your Arch Linux machine
+   scp -r controlcenter/ user@arch-machine:~/
    ```
 
 2. **Run the setup**:
    ```bash
-   cd arch-hyprland-setup
+   cd controlcenter
    ./setup.sh
    ```
 
