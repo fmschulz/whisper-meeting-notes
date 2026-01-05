@@ -1,36 +1,76 @@
-# Controlcenter
+# WSU Workstation Setup (Ubuntu 22.04)
 
-Central repo for syncing Linux configs across machines with machine-specific branches.
+This branch (`wsu`) represents the System76 Thelio Mega workstation running Ubuntu 22.04.5 LTS. It tracks the shared CLI/tooling configs plus workstation-specific notes for GPUs and Ubuntu setup.
 
-## Branch Model
+## Quick Start (WSU)
 
-- `main`: shared, machine-agnostic settings only.
-- Machine branches (`fw13`, `fw12`, `wsu`, `wsa`) layer device/OS-specific changes on top.
+1. **Clone and switch to the workstation branch**
+   ```bash
+   git clone <repo-url> controlcenter
+   cd controlcenter
+   git checkout wsu
+   ```
 
-## What Belongs in `main`
+2. **Apply shared configs (CLI tooling + dotfiles)**
+   ```bash
+   ./apply-configs.sh
+   ```
+   This copies tool configs (Git, Neovim, Claude/Codex/Opencode) and wallpapers. Hyprland configs are present but unused on GNOME.
 
-Only configs that are portable across machines, for example:
+3. **Sync local changes back to the repo (optional)**
+   ```bash
+   ./sync-to-repo.sh
+   ```
 
-- Shared terminal tooling config (e.g., `configs/kitty`, `configs/starship`)
-- Editor/CLI defaults that apply everywhere
-- Shared scripts that don’t depend on OS/hardware paths
-- Shared skill/config folders (e.g., `configs/claude`, `configs/codex`, `configs/opencode`)
-- Wallpapers (optional)
+## Ubuntu-Specific Setup
 
-Anything tied to a specific OS, GPU, monitor layout, or device goes into the machine branch.
+### GPU Drivers + CUDA
+- Check recommended drivers:
+  ```bash
+  ubuntu-drivers devices
+  ```
+- Verify GPU stack:
+  ```bash
+  nvidia-smi
+  nvidia-smi -L
+  ```
+- Pin jobs to specific GPUs when running multi-GPU workloads:
+  ```bash
+  CUDA_VISIBLE_DEVICES=0 <command>
+  ```
 
-## Current State
+### Notes
+- `setup.sh` and `install-prereqs.sh` are Arch-only; do not use them on Ubuntu.
+- GNOME is the default desktop on this machine; Hyprland configs are kept for cross-machine parity.
+- Bash alias: `co` runs `codex --dangerously-bypass-approvals-and-sandbox` (see `configs/bash/bashrc`).
 
-`main` intentionally contains placeholders only. Populate shared configs later; machine branches carry the real settings.
+### Terminal Tooling Parity (fw13 baseline)
+These are the shared terminal tools expected by the configs in this repo:
 
-## Chezmoi (Recommended)
+- Core CLI: `git`, `curl`, `wget`, `jq`, `yq`, `ripgrep`, `fzf`, `fd`, `bat`, `eza`
+- Shell UX: `starship`, `zoxide`, `atuin`
+- Git helpers: `git-delta`, `lazygit`, `gh`
+- TUI tools: `yazi`, `btop`, `fastfetch`
+- Utilities: `tldr` (tealdeer), `fd`, `rg`, `just`
 
-If using `chezmoi`, set this repo as the source and check out the branch matching the machine.
+Ubuntu install notes (use apt where available, otherwise install from upstream releases or `cargo`):
+```bash
+sudo apt update
+sudo apt install -y git curl wget jq ripgrep fzf fd-find bat btop gh
 
-## Workflow
+# Ubuntu provides fdfind/batcat; add symlinks for expected command names.
+mkdir -p ~/.local/bin
+ln -sf "$(command -v fdfind)" ~/.local/bin/fd
+ln -sf "$(command -v batcat)" ~/.local/bin/bat
 
-- Make shared changes on `main`.
-- Make machine-specific changes on the matching branch.
-- Periodically rebase machine branches onto `main`.
+# Rust-based tools not in apt for 22.04 (pick what you need).
+cargo install eza zoxide starship atuin git-delta tealdeer just yazi-fm yazi-cli
+```
 
-See `AGENTS.md` for full rules and branch guidance.
+## Machine Documentation
+
+- `AGENTS.md` captures branch intent and workstation notes.
+- `SYSTEM-SPECS.md` lists detailed hardware and GPU stack info.
+
+---
+*This branch represents the WSU workstation setup. Base configs are inherited from `main`.*
