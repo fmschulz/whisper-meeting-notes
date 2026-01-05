@@ -38,3 +38,20 @@ cargo install \
 ubuntu-drivers devices
 nvidia-smi
 ```
+
+## NVIDIA/CUDA Maintenance (Ubuntu 22.04 LTS)
+
+This workstation is pinned to the 580 driver series and CUDA 13.0. Keep the driver and `nvidia-utils` packages in the same series.
+
+```bash
+# Inspect recommended drivers
+ubuntu-drivers devices
+
+# Install a specific driver series (example: 580)
+sudo apt install -y nvidia-driver-580 nvidia-utils-580
+
+# Verify driver + CUDA runtime
+nvidia-smi
+```
+
+For CUDA toolkit updates, follow NVIDIA's Ubuntu 22.04 repo instructions and match the toolkit to the installed driver series. After updates, reboot and validate with `nvidia-smi` plus a small CUDA workload.

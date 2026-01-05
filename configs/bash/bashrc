@@ -73,6 +73,96 @@ if command -v vivid >/dev/null 2>&1; then
   export LS_COLORS="$(vivid generate catppuccin-mocha)"
 fi
 
+# tealdeer: simplified man pages
+command -v tldr &>/dev/null && alias man='tldr'
+
+# xh: HTTPie alternative in Rust
+command -v xh &>/dev/null && alias http='xh'
+
+# just: modern command runner
+command -v just &>/dev/null && alias j='just'
+
+# hexyl: hex viewer
+command -v hexyl &>/dev/null && alias hex='hexyl'
+
+# Codex CLI helper
+alias co='codex --dangerously-bypass-approvals-and-sandbox'
+
+# ============================================================================
+# ALIASES - WSU GPU helpers
+# ============================================================================
+# Quick GPU status
+alias gpus='nvidia-smi'
+
+# Pin CUDA workloads to specific GPUs (3x GPUs on WSU).
+alias gpu0='CUDA_VISIBLE_DEVICES=0'
+alias gpu1='CUDA_VISIBLE_DEVICES=1'
+alias gpu2='CUDA_VISIBLE_DEVICES=2'
+alias gpu01='CUDA_VISIBLE_DEVICES=0,1'
+alias gpu02='CUDA_VISIBLE_DEVICES=0,2'
+alias gpu12='CUDA_VISIBLE_DEVICES=1,2'
+alias gpuall='CUDA_VISIBLE_DEVICES=0,1,2'
+
+# grex: regex generator from examples
+# Usage: grex 'foo' 'foobar' 'foobaz' -> generates regex
+
+# ============================================================================
+# ALIASES - Git
+# ============================================================================
+alias g='git'
+alias gs='git status -sb'
+alias ga='git add'
+alias gaa='git add --all'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gca='git commit --amend'
+alias gco='git checkout'
+alias gcb='git checkout -b'
+alias gd='git diff'
+alias gds='git diff --staged'
+alias gl='git log --oneline --graph --decorate -20'
+alias gla='git log --oneline --graph --decorate --all'
+alias gp='git push'
+alias gpf='git push --force-with-lease'
+alias gpl='git pull --rebase'
+alias gb='git branch'
+alias gbd='git branch -d'
+alias gst='git stash'
+alias gstp='git stash pop'
+alias gf='git fetch --all --prune'
+
+# ============================================================================
+# ALIASES - Safety
+# ============================================================================
+alias rm='rm -I --preserve-root'
+alias mv='mv -i'
+alias cp='cp -i'
+alias ln='ln -i'
+alias chown='chown --preserve-root'
+alias chmod='chmod --preserve-root'
+alias chgrp='chgrp --preserve-root'
+
+# ============================================================================
+# ALIASES - System (Arch specific)
+# ============================================================================
+alias pac='sudo pacman'
+alias pacs='pacman -Ss'               # Search packages
+alias paci='sudo pacman -S'           # Install
+alias pacr='sudo pacman -Rns'         # Remove with deps
+alias pacu='sudo pacman -Syu'         # Full system upgrade
+alias pacq='pacman -Qi'               # Package info
+alias pacl='pacman -Ql'               # List package files
+alias paco='pacman -Qtdq'             # List orphans
+alias pacclean='sudo pacman -Rns $(pacman -Qtdq) 2>/dev/null || echo "No orphans"'
+
+# Yay/paru (AUR helpers)
+if command -v paru &>/dev/null; then
+    alias yay='paru'
+    alias ya='paru -Syu'
+elif command -v yay &>/dev/null; then
+    alias ya='yay -Syu'
+fi
+
 command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
 
 if command -v starship >/dev/null 2>&1; then
