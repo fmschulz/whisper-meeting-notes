@@ -12,42 +12,42 @@ LOG_PREFIX="[clamshell]"
 declare -a MOVED_WORKSPACES=()
 
 log() {
-  echo "${LOG_PREFIX} $*"
+	echo "${LOG_PREFIX} $*"
 }
 
 require_tools() {
-  command -v hyprctl >/dev/null 2>&1 || {
-    log "hyprctl not found; exiting"
-    exit 0
-  }
-  command -v jq >/dev/null 2>&1 || {
-    log "jq not found; exiting"
-    exit 0
-  }
+	command -v hyprctl >/dev/null 2>&1 || {
+		log "hyprctl not found; exiting"
+		exit 0
+	}
+	command -v jq >/dev/null 2>&1 || {
+		log "jq not found; exiting"
+		exit 0
+	}
 }
 
 wait_for_hypr() {
-  local retries=0
-  while ! hyprctl -j monitors >/dev/null 2>&1; do
-    sleep 1
-    retries=$((retries + 1))
-    if ((retries >= 30)); then
-      log "Hyprland IPC unavailable; exiting"
-      exit 0
-    fi
-  done
+	local retries=0
+	while ! hyprctl -j monitors >/dev/null 2>&1; do
+		sleep 1
+		retries=$((retries + 1))
+		if ((retries >= 30)); then
+			log "Hyprland IPC unavailable; exiting"
+			exit 0
+		fi
+	done
 }
 
 current_lid_state() {
-  if [[ -r "${LID_STATE_PATH}" ]]; then
-    awk '{print $2}' "${LID_STATE_PATH}"
-  else
-    echo "open"
-  fi
+	if [[ -r "${LID_STATE_PATH}" ]]; then
+		awk '{print $2}' "${LID_STATE_PATH}"
+	else
+		echo "open"
+	fi
 }
 
 pick_target_monitor() {
-  hyprctl -j monitors | jq -r --arg internal "${INTERNAL_OUTPUT}" '
+	hyprctl -j monitors | jq -r --arg internal "${INTERNAL_OUTPUT}" '
     map(select(.name != $internal and (.disabled == false))) as $exts |
     if ($exts | length) == 0 then "" else
       (if ($exts | map(select(.focused == true)) | length) > 0 then
@@ -60,75 +60,83 @@ pick_target_monitor() {
 }
 
 fetch_internal_workspaces() {
-  hyprctl -j workspaces | jq -r --arg internal "${INTERNAL_OUTPUT}" '.[] | select(.monitor == $internal) | .id'
+	hyprctl -j workspaces | jq -r --arg internal "${INTERNAL_OUTPUT}" '.[] | select(.monitor == $internal) | .id'
 }
 
 restore_internal_workspaces() {
-  local ws
-  for ws in "${MOVED_WORKSPACES[@]}"; do
-    hyprctl dispatch moveworkspacetomonitor "${ws}" "${INTERNAL_OUTPUT}" >/dev/null 2>&1 || true
-  done
-  MOVED_WORKSPACES=()
+	local ws
+	for ws in "${MOVED_WORKSPACES[@]}"; do
+		hyprctl dispatch moveworkspacetomonitor "${ws}" "${INTERNAL_OUTPUT}" >/dev/null 2>&1 || true
+	done
+	MOVED_WORKSPACES=()
 }
 
 handle_lid_closed() {
-  local target
-  readarray -t MOVED_WORKSPACES < <(fetch_internal_workspaces)
-  target=$(pick_target_monitor)
-  if [[ -z "${target}" ]]; then
-    log "No external monitor detected; skipping clamshell actions"
-    MOVED_WORKSPACES=()
-    return
-  fi
+	local target
+	readarray -t MOVED_WORKSPACES < <(fetch_internal_workspaces)
+	target=$(pick_target_monitor)
+	if [[ -z "${target}" ]]; then
+		log "No external monitor detected; skipping clamshell actions"
+		MOVED_WORKSPACES=()
+		return
+	fi
 
-  log "Lid closed -> moving ${#MOVED_WORKSPACES[@]} workspaces to ${target}"
-  local ws
-  for ws in "${MOVED_WORKSPACES[@]}"; do
-    hyprctl dispatch moveworkspacetomonitor "${ws}" "${target}" >/dev/null 2>&1 || true
-  done
+	log "Lid closed -> moving ${#MOVED_WORKSPACES[@]} workspaces to ${target}"
+	local ws
+	for ws in "${MOVED_WORKSPACES[@]}"; do
+		hyprctl dispatch moveworkspacetomonitor "${ws}" "${target}" >/dev/null 2>&1 || true
+	done
 
-  hyprctl keyword monitor "${INTERNAL_OUTPUT}",disable >/dev/null 2>&1 || true
-  hyprctl dispatch focusmonitor "${target}" >/dev/null 2>&1 || true
+	hyprctl keyword monitor "${INTERNAL_OUTPUT}",disable >/dev/null 2>&1 || true
+	hyprctl dispatch focusmonitor "${target}" >/dev/null 2>&1 || true
+
+	# Restart waybar to fix duplication issues on dock
+	pkill -x waybar || true
+	waybar &
 }
 
 handle_lid_opened() {
-  log "Lid opened -> restoring internal display"
-  hyprctl keyword monitor "${INTERNAL_OUTPUT}","${INTERNAL_MODE}" >/dev/null 2>&1 || true
-  sleep 1
-  restore_internal_workspaces
+	log "Lid opened -> restoring internal display"
+	hyprctl keyword monitor "${INTERNAL_OUTPUT}","${INTERNAL_MODE}" >/dev/null 2>&1 || true
+	sleep 1
+	restore_internal_workspaces
+
+	# Restart waybar to fix layout
+	pkill -x waybar || true
+	waybar &
 }
 
 main() {
-  require_tools
+	require_tools
 
-  if [[ ! -r "${LID_STATE_PATH}" ]]; then
-    log "Lid state path ${LID_STATE_PATH} not readable; exiting"
-    exit 0
-  fi
+	if [[ ! -r "${LID_STATE_PATH}" ]]; then
+		log "Lid state path ${LID_STATE_PATH} not readable; exiting"
+		exit 0
+	fi
 
-  wait_for_hypr
+	wait_for_hypr
 
-  local last_state
-  last_state=$(current_lid_state)
-  log "Initial lid state: ${last_state}"
+	local last_state
+	last_state=$(current_lid_state)
+	log "Initial lid state: ${last_state}"
 
-  if [[ "${last_state}" == "closed" ]]; then
-    handle_lid_closed
-  fi
+	if [[ "${last_state}" == "closed" ]]; then
+		handle_lid_closed
+	fi
 
-  while true; do
-    sleep "${POLL_INTERVAL}"
-    local state
-    state=$(current_lid_state)
-    if [[ "${state}" != "${last_state}" ]]; then
-      if [[ "${state}" == "closed" ]]; then
-        handle_lid_closed
-      else
-        handle_lid_opened
-      fi
-      last_state="${state}"
-    fi
-  done
+	while true; do
+		sleep "${POLL_INTERVAL}"
+		local state
+		state=$(current_lid_state)
+		if [[ "${state}" != "${last_state}" ]]; then
+			if [[ "${state}" == "closed" ]]; then
+				handle_lid_closed
+			else
+				handle_lid_opened
+			fi
+			last_state="${state}"
+		fi
+	done
 }
 
 main
