@@ -45,6 +45,11 @@ git rebase origin/main
 chezmoi apply
 ```
 
+### Branch + Chezmoi Notes
+- Each machine maps to its own git branch (e.g., `fw13`, `wsu`).
+- Keep machine branches rebased on `main`; do not merge machine branches into each other.
+- If using `chezmoi`, set the source to this repo and keep the checked-out branch aligned with the target machine.
+
 ## Machine-Specific Files
 - `SYSTEM-SPECS.md` - Detailed hardware specs
 - `configs/hypr/hyprland.conf` - Monitor layout for this machine
