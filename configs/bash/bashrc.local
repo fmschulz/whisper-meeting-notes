@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Machine-specific aliases (tracked in this private repo).
+
+alias dori='ssh fschulz@jgi-interactive09.jgi.lbl.gov'
+alias saul='ssh fschulz@saul-p1.nersc.gov'
+alias jo='ssh fschulz@jgi-ont'
+alias ne='ssh fschulz@nelli'
+

@@ -1,0 +1,6 @@
+vulkan-intel
+vulkan-tools
+intel-media-driver
+libva-utils
+libvdpau-va-gl
+intel-gpu-tools

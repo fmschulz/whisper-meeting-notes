@@ -1,0 +1,24 @@
+[[manager.prepend_keymap]]
+on = ["<C-n>"]
+run = "shell 'touch \"$0\"' --confirm"
+desc = "Create a new file"
+
+[[manager.prepend_keymap]]
+on = ["a"]
+run = "shell 'mkdir \"$0\"' --confirm"
+desc = "Create a new directory"
+
+[[manager.prepend_keymap]]
+on = ["<C-p>"]
+run = "shell 'glow \"$0\"' --block --confirm"
+desc = "Preview markdown file"
+
+[[manager.prepend_keymap]]
+on = ["<Enter>"]
+run = "plugin --sync smart-enter"
+desc = "Enter the child directory, or open the file"
+
+[[manager.prepend_keymap]]
+on = ["e"]
+run = "shell 'nano \"$0\"' --block --confirm"
+desc = "Edit with nano"
