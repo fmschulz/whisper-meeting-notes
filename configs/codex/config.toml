@@ -1,0 +1,27 @@
+model = "gpt-5.2-codex"
+model_reasoning_effort = "medium"
+
+[features]
+skills = true
+
+[projects."/home/fschulz/apps/flashforge"]
+trust_level = "trusted"
+
+[projects."/home/fschulz/controlcenter"]
+trust_level = "trusted"
+
+[projects."/home/fschulz/dev/meeting-notes-kit"]
+trust_level = "trusted"
+
+[projects."/home/fschulz"]
+trust_level = "trusted"
+
+[projects."/home/fschulz/dev/pdf_collection"]
+trust_level = "trusted"
+
+[notice]
+hide_gpt5_1_migration_prompt = true
+"hide_gpt-5.1-codex-max_migration_prompt" = true
+
+[notice.model_migrations]
+"gpt-5.2" = "gpt-5.2-codex"

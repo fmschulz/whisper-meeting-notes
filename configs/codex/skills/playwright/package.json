@@ -1,0 +1,11 @@
+{
+  "name": "playwright-skill",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "setup": "npx playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.57.0"
+  }
+}

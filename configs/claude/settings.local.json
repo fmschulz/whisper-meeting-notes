@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash([ -d .ssh ])",
+      "Bash([ -f ~/.gitignore_global ])",
+      "Bash(cat:*)",
+      "Bash([ -d ~/.config/nvim ])",
+      "Bash([ -d ~/.config/Code ])",
+      "Bash([ -f ~/.npmrc ])",
+      "Bash([ -f ~/.cargo/config.toml ])",
+      "Bash([ -f ~/.condarc ])",
+      "Bash([ -d ~/.config/bash ])",
+      "Bash([ -d ~/.config/starship ])",
+      "Bash([ -d ~/.cargo ])",
+      "Bash([ -f ~/.pythonrc ])",
+      "Bash([ -f ~/.config/lapce-stable/settings.toml ])",
+      "Bash(git -C ~/.config log -1 --oneline)",
+      "Bash(rustc:*)",
+      "Bash(cargo:*)",
+      "Bash(node --version:*)",
+      "Bash(go version:*)",
+      "Bash(systemctl list-unit-files:*)",
+      "Bash(systemd-analyze:*)",
+      "Bash(pacman -Qs:*)",
+      "Bash(journalctl:*)",
+      "Bash(pacman:*)",
+      "Bash(pacman -Q:*)",
+      "Bash(lspci:*)",
+      "Bash(powerprofilesctl list:*)",
+      "Bash(systemctl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
