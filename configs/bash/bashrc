@@ -1,0 +1,84 @@
+# Shared minimal bashrc (machine-agnostic)
+# Source of truth: ~/controlcenter/configs/bash/bashrc
+
+# Interactive shells only.
+[[ $- != *i* ]] && return
+
+umask 077
+
+# Load secrets (not in git).
+[[ -f ~/.secrets ]] && source ~/.secrets
+
+# XDG base directories.
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+
+path_prepend() {
+  [[ -d "$1" ]] && [[ ":$PATH:" != *":$1:"* ]] && PATH="$1:$PATH"
+}
+
+path_prepend "$HOME/.local/bin"
+path_prepend "$HOME/bin"
+path_prepend "$HOME/.cargo/bin"
+path_prepend "$HOME/.npm-global/bin"
+path_prepend "$HOME/.pixi/bin"
+path_prepend "$HOME/.config/scripts"
+export PATH
+
+export EDITOR="nvim"
+export VISUAL="nvim"
+
+# Listing (use modern tools if available).
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza --icons --group-directories-first'
+  alias ll='eza -l --icons --group-directories-first --git'
+  alias la='eza -la --icons --group-directories-first --git'
+else
+  alias ls='ls --color=auto --group-directories-first'
+  alias ll='ls -lh'
+  alias la='ls -lAh'
+fi
+
+# Ubuntu compatibility: map batcat/fdfind to expected command names.
+if command -v batcat >/dev/null 2>&1 && ! command -v bat >/dev/null 2>&1; then
+  alias bat='batcat'
+fi
+if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; then
+  alias fd='fdfind'
+fi
+
+# Modern CLI replacements (only if installed).
+command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
+command -v rg >/dev/null 2>&1 && alias grep='rg -S'
+command -v fd >/dev/null 2>&1 && alias find='fd'
+command -v dust >/dev/null 2>&1 && alias du='dust'
+command -v duf >/dev/null 2>&1 && alias df='duf'
+command -v procs >/dev/null 2>&1 && alias ps='procs'
+command -v btm >/dev/null 2>&1 && alias top='btm' && alias htop='btm'
+command -v sd >/dev/null 2>&1 && alias sed='sd'
+
+# Tool integrations.
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init bash)"
+  alias cd='z'
+fi
+
+if command -v atuin >/dev/null 2>&1; then
+  eval "$(atuin init bash --disable-up-arrow)"
+fi
+
+if command -v vivid >/dev/null 2>&1; then
+  export LS_COLORS="$(vivid generate catppuccin-mocha)"
+fi
+
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
+
+if command -v starship >/dev/null 2>&1; then
+  export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
+  eval "$(starship init bash)"
+fi
+
+# Machine-specific overrides (not tracked in git).
+[[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
