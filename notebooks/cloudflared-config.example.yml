@@ -1,0 +1,9 @@
+tunnel: <TUNNEL-UUID>
+credentials-file: /home/<user>/.cloudflared/<TUNNEL-UUID>.json
+
+ingress:
+  - hostname: <machine>-nb.newlineages.com
+    service: http://127.0.0.1:8891
+  - hostname: <machine>-voila.newlineages.com
+    service: http://127.0.0.1:8866
+  - service: http_status:404
