@@ -83,6 +83,11 @@ Voila:
 ./scripts/run_voila.sh
 ```
 
+Voila (single notebook):
+```bash
+./scripts/run_voila_single.sh /path/to/notebook.ipynb
+```
+
 Tunnel:
 ```bash
 TUNNEL_NAME=nelli-notebooks ./scripts/run_tunnel.sh

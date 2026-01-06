@@ -27,6 +27,11 @@ Run locally (no browser on host is fine):
 ./scripts/run_voila.sh
 ```
 
+Serve a single notebook with Voila (useful for sharing one report):
+```bash
+./scripts/run_voila_single.sh /path/to/notebook.ipynb
+```
+
 ## Cloudflared tunnel
 
 1. Ensure `cloudflared` is in `PATH` (`/usr/local/bin/cloudflared` or `~/bin/cloudflared`).
