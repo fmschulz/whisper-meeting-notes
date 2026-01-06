@@ -17,6 +17,20 @@ Current shared hostnames:
 
 If multiple machines need concurrent access, use machine-specific hostnames (e.g. `wsu-nb.*`, `dori-nb.*`) and create separate tunnels + Access apps.
 
+## Using a Different Machine (Remote Host)
+
+You can run a notebook server on another machine without touching the WSU server **as long as you use machine-specific hostnames**.
+
+**Do you need to stop WSU?**
+- **No**, if the remote machine uses its own hostnames (e.g. `dori-nb.*`, `dori-voila.*`).
+- **Yes**, if you try to reuse `nb.newlineages.com` and `voila.newlineages.com`, because DNS can only point to one tunnel at a time.
+
+**Do you need to copy secrets?**
+- The remote machine needs **its own** Cloudflare tunnel credentials:
+  - Either run `cloudflared tunnel login` on that machine (recommended) and create a new tunnel there,
+  - Or copy the tunnel credentials JSON from the machine that created the tunnel (not recommended).
+- If you’re automating Access/DNS via API, the remote machine needs the Cloudflare API token (store in `~/.secrets/cloudflare.env`).
+
 ## Setup (per machine)
 
 ```bash
@@ -52,6 +66,8 @@ Local config file:
 - `~/.cloudflared/config.yml`
 
 It should point to the tunnel UUID and map `nb.newlineages.com` and `voila.newlineages.com` to the local ports.
+
+For a remote machine, create a **new tunnel** and map **machine-specific hostnames** to avoid conflict with WSU.
 
 ## Cloudflare Access
 

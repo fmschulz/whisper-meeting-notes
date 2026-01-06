@@ -10,6 +10,8 @@ Primary hostnames (single machine):
 
 If you need multiple machines simultaneously, use machine-specific hostnames (e.g. `wsu-nb.*`, `dori-nb.*`) and create separate tunnels + Access apps for each.
 
+If you run a server on a second machine, do **not** reuse the shared hostnames unless you intend to switch DNS over to that machine. Each machine should have its own tunnel and hostnames for concurrent use.
+
 ## Bootstrap (per machine)
 
 ```bash
