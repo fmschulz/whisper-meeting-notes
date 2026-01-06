@@ -19,6 +19,20 @@ This `main` branch contains shared configuration and scripts used by all machine
 5. **Deployment**: Use `./apply-configs.sh` to sync repository configs to the system.
 6. **GitHub Interaction**: ALWAYS use the GitHub CLI (`gh`) for authentication and repository operations. Run `gh auth setup-git` to ensure git uses `gh` for credential management. This avoids SSH key issues and ensures smooth interaction across machines.
 
+### Server Operations (Jupyter/Voila + Cloudflare)
+- Follow `docs/servers.md` and `docs/notebooks-cloudflare.md` for the canonical setup.
+- Jupyter/Voila runs from `notebooks/` via Pixi; launch with:
+  - `./notebooks/scripts/run_lab.sh` (JupyterLab)
+  - `./notebooks/scripts/run_voila.sh` (Voila)
+- Cloudflare Tunnel is managed via `~/.cloudflared/config.yml` and started with:
+  - `TUNNEL_NAME=nelli-notebooks ./notebooks/scripts/run_tunnel.sh`
+- Access login is Google-based; allowlist is email-based (currently `fmschulz@gmail.com`).
+- Jupyter root is `~/dev` by default; override with `JUPYTER_ROOT=/path`.
+- Logs:
+  - Jupyter: `notebooks/logs/jupyter.log`
+  - Voila: `notebooks/logs/voila.log`
+  - Tunnel: `~/.cloudflared/nelli-notebooks.log`
+
 ## Project Structure
 ```
 ├── configs/           # Application configurations
