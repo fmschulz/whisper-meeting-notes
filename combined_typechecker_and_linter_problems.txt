@@ -1,7 +1,0 @@
-$ mypy .
-There are no .py[i] files in directory '.'
-
-
-$ ruff check .
-warning: No Python files found under the given path(s)
-All checks passed!
