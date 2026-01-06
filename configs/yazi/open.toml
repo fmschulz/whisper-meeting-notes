@@ -1,0 +1,43 @@
+# Text files
+[[open.rules]]
+mime = "text/*"
+use = "edit"
+
+# Image files
+[[open.rules]]
+mime = "image/*"
+use = "image"
+
+# PDF files
+[[open.rules]]
+mime = "application/pdf"
+use = "pdf"
+
+# Video files
+[[open.rules]]
+mime = "video/*"
+use = "video"
+
+# Audio files
+[[open.rules]]
+mime = "audio/*"
+use = "audio"
+
+[open.opener.edit]
+run = 'nano "$@"'
+block = true
+
+[open.opener.image]
+run = 'imv "$@"'
+orphan = true
+
+[open.opener.pdf]
+run = 'zathura "$@"'
+
+[open.opener.video]
+run = 'mpv "$@"'
+orphan = true
+
+[open.opener.audio]
+run = 'mpv "$@"'
+orphan = true

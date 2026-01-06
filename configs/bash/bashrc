@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Interactive shells only.
+[[ $- != *i* ]] && return
+
+umask 077
+
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+
+path_prepend() {
+  [[ -d "$1" ]] && [[ ":$PATH:" != *":$1:"* ]] && PATH="$1:$PATH"
+}
+
+path_prepend "$HOME/.local/bin"
+path_prepend "$HOME/.config/scripts"
+export PATH
+
+export EDITOR="nvim"
+export VISUAL="nvim"
+
+[[ -f ~/.secrets ]] && source ~/.secrets
+
+# Node Version Manager (optional)
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
+[[ -s "$NVM_DIR/bash_completion" ]] && . "$NVM_DIR/bash_completion"
+
+if command -v starship >/dev/null 2>&1; then
+  export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
+  eval "$(starship init bash)"
+fi
+
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza --icons --group-directories-first'
+  alias ll='eza -l --icons --group-directories-first --git'
+  alias la='eza -la --icons --group-directories-first --git'
+else
+  alias ls='ls --color=auto --group-directories-first'
+  alias ll='ls -lh'
+  alias la='ls -lAh'
+fi
+
+command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
+command -v rg >/dev/null 2>&1 && alias grep='rg -S'
+command -v fd >/dev/null 2>&1 && alias find='fd'
+
+alias h='history'
+alias hg='history | grep'
+
+alias g='git'
+alias gs='git status -sb'
+alias gd='git diff'
+alias gds='git diff --staged'
+alias gp='git push'
+alias gpl='git pull --rebase'
+
+alias kb="$HOME/.config/scripts/keybindings-popup.sh"
+
+# Rename a Hyprland workspace.
+# Usage: ws <workspace_number> <new name...>
+ws() {
+  if ! command -v hyprctl >/dev/null 2>&1; then
+    echo "ws: hyprctl not found" >&2
+    return 127
+  fi
+
+  if (( $# < 2 )); then
+    echo "Usage: ws <workspace_number> <new name...>" >&2
+    return 2
+  fi
+
+  local ws_id=$1
+  shift
+  local ws_name=$*
+
+  hyprctl dispatch renameworkspace "$ws_id" "$ws_name"
+}
+
+[[ -f ~/.config/scripts/welcome.sh ]] && source ~/.config/scripts/welcome.sh
+
+# Machine-specific overrides (not tracked in git)
+[[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
