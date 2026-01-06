@@ -5,7 +5,7 @@
 # ============================================================================
 # EARLY EXIT FOR NON-INTERACTIVE SHELLS
 # ============================================================================
-# [[ $- != *i* ]] [[ $- != *i* ]] && return[[ $- != *i* ]] && return return
+[[ $- != *i* ]] && return
 
 # ============================================================================
 # SECURITY
@@ -372,30 +372,21 @@ mkcd() {
 # Rename a Hyprland workspace.
 # Usage: ws <workspace_number> <new name...>
 ws() {
-    if [[ -z "$1" ]]; then
-        echo "Usage: ws <workspace_number> [name]"
-        echo "  ws 1 Browser    - rename workspace 1 to 'Browser'"
-        echo "  ws 1            - reset workspace 1 to just '1'"
-        return 1
+    if ! command -v hyprctl >/dev/null 2>&1; then
+        echo "ws: hyprctl not found" >&2
+        return 127
+    fi
+
+    if (( $# < 2 )); then
+        echo "Usage: ws <workspace_number> <new name...>" >&2
+        return 2
     fi
 
     local ws_id=$1
     shift
-    local ws_name="$*"
+    local ws_name=$*
 
-    if command -v workspace-rename.sh &>/dev/null; then
-        workspace-rename.sh rename "$ws_id" "$ws_name"
-    elif [[ -f ~/.config/scripts/workspace-rename.sh ]]; then
-        ~/.config/scripts/workspace-rename.sh rename "$ws_id" "$ws_name"
-    else
-        # Fallback to direct hyprctl if script is missing
-        if command -v hyprctl &>/dev/null; then
-            hyprctl dispatch renameworkspace "$ws_id" "$ws_name"
-        else
-            echo "ws: workspace-rename.sh or hyprctl not found" >&2
-            return 127
-        fi
-    fi
+    hyprctl dispatch renameworkspace "$ws_id" "$ws_name"
 }
 
 # Extract any archive
