@@ -39,6 +39,15 @@ This branch (`wsu`) represents the System76 Thelio Mega workstation running Ubun
   CUDA_VISIBLE_DEVICES=0 <command>
   ```
 
+### Monitoring (Threadripper + 3 GPUs)
+- CPU core view (64 threads): `btop` (config in `configs/btop/btop.conf`)
+- GPU utilization per device: `nvtop`
+- Quick GPU snapshot:
+  ```bash
+  nvidia-smi -L
+  watch -n 1 nvidia-smi
+  ```
+
 ### Notes
 - `setup.sh` and `install-prereqs.sh` are Arch-only; do not use them on Ubuntu.
 - GNOME is the default desktop on this machine; Hyprland configs are kept for cross-machine parity.

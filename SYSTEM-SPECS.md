@@ -42,6 +42,11 @@
 | Driver | NVIDIA 580.95.05 |
 | CUDA | 13.0 |
 
+### Monitoring
+- **CPU (64 threads)**: `btop` with per-core view (see `configs/btop/btop.conf`).
+- **GPU (3 devices)**: `nvtop` for per-GPU utilization + memory.
+- **CLI quick checks**: `nvidia-smi -L`, `watch -n 1 nvidia-smi`.
+
 ### Special Configurations
 - **Multi-GPU**: CUDA workloads pin via `CUDA_VISIBLE_DEVICES`.
 - **Driver Management**: `ubuntu-drivers devices` shows recommended driver stack.
