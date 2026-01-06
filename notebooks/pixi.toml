@@ -20,5 +20,5 @@ matplotlib = "*"
 scipy = "*"
 
 [tasks]
-lab = "bash -lc 'jupyter lab --ip=127.0.0.1 --port=${PORT_LAB:-8891} --no-browser'"
+lab = "bash -lc 'jupyter lab --ip=127.0.0.1 --port=${PORT_LAB:-8891} --no-browser --ServerApp.token= --ServerApp.password='"
 voila = "bash -lc 'voila ./reports --ip=127.0.0.1 --port=${PORT_VOILA:-8866} --no-browser'"
