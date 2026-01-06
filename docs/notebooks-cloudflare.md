@@ -54,3 +54,4 @@ To make invites easy, create an Access **Group** (e.g. `notebook-users`) and upd
 - Keep Jupyter/Voila bound to `127.0.0.1` so only the tunnel can reach them.
 - Each machine should have its own tunnel if you need concurrent access from multiple hosts.
 - When protected by Cloudflare Access, disable the Jupyter token/password and enable remote access/trusted headers so the proxy host header is accepted. The default `pixi.toml` does this.
+- Jupyter’s file browser root is set to `~/dev` by default. Override with `JUPYTER_ROOT=/path` when starting Lab if you want a different root.
