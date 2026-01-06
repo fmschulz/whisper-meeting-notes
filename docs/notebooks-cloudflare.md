@@ -4,7 +4,7 @@ This repo provides a reusable template under `notebooks/` for hosting JupyterLab
 
 ## Hostnames
 
-Primary hostnames:
+Primary hostnames (single machine):
 - `nb.newlineages.com`
 - `voila.newlineages.com`
 
@@ -32,10 +32,10 @@ Run locally (no browser on host is fine):
    ```bash
    cloudflared tunnel create <TUNNEL_NAME>
    ```
-3. Route DNS:
+3. Route DNS (choose either the shared hostnames or machine-specific ones):
    ```bash
-   cloudflared tunnel route dns <TUNNEL_NAME> nb.newlineages.com
-   cloudflared tunnel route dns <TUNNEL_NAME> voila.newlineages.com
+   cloudflared tunnel route dns <TUNNEL_NAME> <machine>-nb.newlineages.com
+   cloudflared tunnel route dns <TUNNEL_NAME> <machine>-voila.newlineages.com
    ```
 4. Copy `notebooks/cloudflared-config.example.yml` to `~/.cloudflared/config.yml` and update the UUID + hostnames.
 5. Run the tunnel:

@@ -1,0 +1,5 @@
+.pixi/
+.ipynb_checkpoints/
+.jupyter/
+.cache/
+.DS_Store
