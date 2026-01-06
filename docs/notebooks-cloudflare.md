@@ -4,8 +4,11 @@ This repo provides a reusable template under `notebooks/` for hosting JupyterLab
 
 ## Hostnames
 
-- WSU: `wsu-nb.newlineages.com`, `wsu-voila.newlineages.com`
-- Dori: `dori-nb.newlineages.com`, `dori-voila.newlineages.com`
+Primary hostnames:
+- `nb.newlineages.com`
+- `voila.newlineages.com`
+
+If you need multiple machines simultaneously, use machine-specific hostnames (e.g. `wsu-nb.*`, `dori-nb.*`) and create separate tunnels + Access apps for each.
 
 ## Bootstrap (per machine)
 
@@ -31,8 +34,8 @@ Run locally (no browser on host is fine):
    ```
 3. Route DNS:
    ```bash
-   cloudflared tunnel route dns <TUNNEL_NAME> wsu-nb.newlineages.com
-   cloudflared tunnel route dns <TUNNEL_NAME> wsu-voila.newlineages.com
+   cloudflared tunnel route dns <TUNNEL_NAME> nb.newlineages.com
+   cloudflared tunnel route dns <TUNNEL_NAME> voila.newlineages.com
    ```
 4. Copy `notebooks/cloudflared-config.example.yml` to `~/.cloudflared/config.yml` and update the UUID + hostnames.
 5. Run the tunnel:
@@ -49,4 +52,4 @@ To make invites easy, create an Access **Group** (e.g. `notebook-users`) and upd
 ## Notes
 
 - Keep Jupyter/Voila bound to `127.0.0.1` so only the tunnel can reach them.
-- Each machine should have its own tunnel + hostnames.
+- Each machine should have its own tunnel if you need concurrent access from multiple hosts.

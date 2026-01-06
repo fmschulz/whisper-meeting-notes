@@ -1,10 +1,10 @@
 # Copy to ~/.cloudflared/config.yml and replace placeholders.
 tunnel: <TUNNEL-UUID>
-credentials-file: /home/fschulz/.cloudflared/<TUNNEL-UUID>.json
+credentials-file: /home/<user>/.cloudflared/<TUNNEL-UUID>.json
 
 ingress:
-  - hostname: wsu-nb.newlineages.com
+  - hostname: nb.newlineages.com
     service: http://127.0.0.1:8891
-  - hostname: wsu-voila.newlineages.com
+  - hostname: voila.newlineages.com
     service: http://127.0.0.1:8866
   - service: http_status:404
