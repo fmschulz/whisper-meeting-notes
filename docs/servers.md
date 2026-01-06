@@ -31,6 +31,39 @@ You can run a notebook server on another machine without touching the WSU server
   - Or copy the tunnel credentials JSON from the machine that created the tunnel (not recommended).
 - If you’re automating Access/DNS via API, the remote machine needs the Cloudflare API token (store in `~/.secrets/cloudflare.env`).
 
+### Remote Machine Checklist (example: dori)
+
+1. **Clone repo + install deps**
+   ```bash
+   git clone <repo-url> controlcenter
+   cd controlcenter
+   git checkout main
+   cd notebooks
+   pixi install
+   ```
+2. **Install cloudflared (user-level)** and ensure it’s on `PATH`.
+3. **Create a tunnel**
+   ```bash
+   cloudflared tunnel login
+   cloudflared tunnel create dori-notebooks
+   ```
+4. **Route DNS to machine-specific hostnames**
+   ```bash
+   cloudflared tunnel route dns dori-notebooks dori-nb.newlineages.com
+   cloudflared tunnel route dns dori-notebooks dori-voila.newlineages.com
+   ```
+5. **Write `~/.cloudflared/config.yml`** with the new tunnel UUID and hostnames.
+6. **Create Access apps + policies** for:
+   - `dori-nb.newlineages.com`
+   - `dori-voila.newlineages.com`
+   Allowlist: `fmschulz@gmail.com` (or Access group).
+7. **Start services**
+   ```bash
+   ./scripts/run_lab.sh
+   ./scripts/run_voila.sh
+   TUNNEL_NAME=dori-notebooks ./scripts/run_tunnel.sh
+   ```
+
 ## Setup (per machine)
 
 ```bash
