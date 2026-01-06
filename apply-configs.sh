@@ -31,7 +31,8 @@ if [[ -d "${SCRIPT_DIR}/configs" ]]; then
 	for src in "${SCRIPT_DIR}/configs/"*; do
 		name="$(basename "$src")"
 		# Skip claude and codex as they are handled separately (not in .config)
-		if [[ "$name" == "claude" || "$name" == "codex" ]]; then
+		# Skip nvim as it is symlinked later
+		if [[ "$name" == "claude" || "$name" == "codex" || "$name" == "nvim" ]]; then
 			continue
 		fi
 		if [[ -d "$src" ]]; then
