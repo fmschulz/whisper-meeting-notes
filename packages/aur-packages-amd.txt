@@ -1,2 +1,0 @@
-framework-tool
-framework-laptop-kmod

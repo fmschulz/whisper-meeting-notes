@@ -1,6 +1,0 @@
-[Unit]
-Description=Application cache cleanup
-
-[Service]
-Type=oneshot
-ExecStart=%h/.config/scripts/cache-cleanup.sh

@@ -1,38 +1,34 @@
-# Controlcenter Configs
+# Controlcenter
 
-Shared Linux configuration repo with machine-specific branches layered on top of `main`.
+Central repo for syncing Linux configs across machines with machine-specific branches.
 
-## Branches
+## How This Repo Is Organized
 
-- `main`: shared configs and scripts
-- `fw13`: Framework 13 (Arch)
-- `fw12`: Framework 12 (Arch)
-- `wsu`: Ubuntu workstation
-- `wsa`: Arch workstation
+- `main` = shared, machine-agnostic settings only.
+- Machine branches (`fw13`, `fw12`, `wsu`, `wsa`) layer device/OS-specific changes on top.
 
-## Quick Start
+This keeps hardware- or OS-specific files out of `main` while still letting us share common tooling and defaults.
 
-Apply tracked configs (no package installs):
-```bash
-./apply-configs.sh
-```
+## What Belongs in `main`
 
-Install minimal deps required by `apply-configs.sh`:
-```bash
-./install-prereqs.sh
-```
+Only configs that are truly portable across machines, for example:
 
-Provision a full Arch setup (packages + configs + services):
-```bash
-./setup.sh
-```
+- Shared terminal tooling config (e.g., `configs/kitty`, `configs/starship`)
+- Editor/CLI defaults that apply everywhere
+- Common scripts that don’t depend on OS/hardware paths
+- Shared skill/config folders (e.g., `configs/claude`, `configs/codex`, `configs/opencode`)
+- Wallpapers (optional)
 
-## Repo Layout
+Anything tied to a specific OS, GPU, monitor layout, or device goes into the machine branch.
 
-- `configs/`: dotfiles (Hyprland, Waybar, Kitty, Bash, Git, etc.)
-- `packages/`: package manifests (pacman/aur and machine-specific lists)
-- `scripts/`: helpers and provisioning scripts (`scripts/setup/` for privileged tasks)
-- `docs/`: notes and troubleshooting
-- `wallpapers/`: curated wallpapers
+## Chezmoi (Recommended)
 
-See `AGENTS.md` for workflow rules and branch guidance.
+If using `chezmoi`, set this repo as the source and check out the branch matching the machine.
+
+## Workflow
+
+- Make shared changes on `main`.
+- Make machine-specific changes on the matching branch.
+- Periodically rebase machine branches onto `main`.
+
+See `AGENTS.md` for full rules and branch guidance.
