@@ -1,0 +1,33 @@
+# User-level CLI tools installed via cargo (no sudo required)
+# Install: xargs -a packages/cargo-tools.txt -r cargo install
+
+# Core replacements
+bat
+ripgrep
+fd-find
+eza
+du-dust
+duf
+procs
+bottom
+sd
+
+# Shell productivity
+zoxide
+starship
+atuin
+vivid
+tealdeer
+just
+
+# Utilities
+hyperfine
+tokei
+ouch
+hexyl
+xh
+choose
+grex
+git-delta
+yazi-fm
+yazi-cli

@@ -1,0 +1,24 @@
+[project]
+name = "notebooks"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = ">=3.10,<3.13"
+# Jupyter authoring
+jupyterlab = ">=4"
+# Pixi → kernel integration
+pixi-kernel = "*"
+ipykernel = "*"
+# Voila app serving
+voila = "*"
+
+# Typical DS stack (adjust to your needs)
+numpy = "*"
+pandas = "*"
+matplotlib = "*"
+scipy = "*"
+
+[tasks]
+lab = "bash -lc 'jupyter lab --ip=127.0.0.1 --port=${PORT_LAB:-8891} --no-browser --ServerApp.token= --ServerApp.password= --ServerApp.allow_remote_access=True --ServerApp.trust_xheaders=True --ServerApp.root_dir=${JUPYTER_ROOT:-$HOME/dev}'"
+voila = "bash -lc 'voila ./reports --ip=127.0.0.1 --port=${PORT_VOILA:-8866} --no-browser'"

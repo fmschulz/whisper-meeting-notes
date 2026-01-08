@@ -1,36 +1,26 @@
-# Controlcenter
+# Dori Setup (No Sudo)
 
-Central repo for syncing Linux configs across machines with machine-specific branches.
+This branch (`dori`) represents a no-sudo Linux environment. It tracks shared CLI/tooling configs plus user-level install notes for modern command line tools.
 
-## Branch Model
+## Quick Start (Dori)
 
-- `main`: shared, machine-agnostic settings only.
-- Machine branches (`fw13`, `fw12`, `wsu`, `wsa`) layer device/OS-specific changes on top.
+1. **Clone and switch to the dori branch**
+   ```bash
+   git clone <repo-url> controlcenter
+   cd controlcenter
+   git checkout dori
+   ```
 
-## What Belongs in `main`
+2. **Apply shared configs (CLI tooling + dotfiles)**
+   ```bash
+   ./apply-configs.sh
+   ```
+   This copies tool configs (Git, Neovim, Claude/Codex/Opencode) and wallpapers.
 
-Only configs that are portable across machines, for example:
+3. **Install modern CLI tools (no sudo)**
+   See `docs/dori-tools.md` and `packages/cargo-tools.txt`.
 
-- Shared terminal tooling config (e.g., `configs/kitty`, `configs/starship`)
-- Editor/CLI defaults that apply everywhere
-- Shared scripts that don’t depend on OS/hardware paths
-- Shared skill/config folders (e.g., `configs/claude`, `configs/codex`, `configs/opencode`)
-- Wallpapers (optional)
+## Notes
 
-Anything tied to a specific OS, GPU, monitor layout, or device goes into the machine branch.
-
-## Current State
-
-`main` intentionally contains placeholders only. Populate shared configs later; machine branches carry the real settings.
-
-## Chezmoi (Recommended)
-
-If using `chezmoi`, set this repo as the source and check out the branch matching the machine.
-
-## Workflow
-
-- Make shared changes on `main`.
-- Make machine-specific changes on the matching branch.
-- Periodically rebase machine branches onto `main`.
-
-See `AGENTS.md` for full rules and branch guidance.
+- This machine does not have sudo; prefer user-level installs in `~/.local/bin` or `~/.cargo/bin`.
+- Replace `~/.bashrc` with `configs/bash/bashrc` or source it from `.bashrc`.
