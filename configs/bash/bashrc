@@ -121,6 +121,7 @@ alias .....='cd ../../../..'
 
 # Claude Code CLI helper (required by agent farm)
 unalias cc 2>/dev/null || true
+unset -f cc 2>/dev/null || true
 cc() {
     local bin="${CLAUDE_BIN:-$HOME/.local/bin/claude}"
     ENABLE_BACKGROUND_TASKS="${ENABLE_BACKGROUND_TASKS:-1}" command "$bin" --dangerously-skip-permissions "$@"
@@ -360,7 +361,12 @@ alias free='free -h'
 alias path='echo -e ${PATH//:/\\n}'
 alias now='date +"%Y-%m-%d %H:%M:%S"'
 alias week='date +%V'
-alias reload='source ~/.bashrc && echo "bashrc reloaded"'
+unalias reload 2>/dev/null || true
+unset -f reload 2>/dev/null || true
+reload() {
+    source "$HOME/controlcenter/configs/bash/bashrc"
+    echo "bashrc reloaded"
+}
 alias c='clear'
 alias q='exit'
 
