@@ -153,7 +153,9 @@ alias l='ls -CF'
 if command -v batcat &>/dev/null && ! command -v bat &>/dev/null; then
     alias bat='batcat'
 fi
-if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
+if command -v fdfind &>/dev/null; then
+    unalias fd 2>/dev/null || true
+    unset -f fd 2>/dev/null || true
     # Accept legacy "-n" usage by translating it to "--no-ignore".
     fd() {
         local args=()
