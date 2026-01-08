@@ -120,6 +120,7 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 
 # Claude Code CLI helper (required by agent farm)
+unalias cc 2>/dev/null || true
 cc() {
     local bin="${CLAUDE_BIN:-$HOME/.local/bin/claude}"
     ENABLE_BACKGROUND_TASKS="${ENABLE_BACKGROUND_TASKS:-1}" command "$bin" --dangerously-skip-permissions "$@"
