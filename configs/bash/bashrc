@@ -119,17 +119,11 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 alias .....='cd ../../../..'
 
-# Claude Code Agent Farm helper
-cc-farm() {
-    local tool="$HOME/.claude/tools/claude_code_agent_farm"
-    local cfg="${1:-$tool/configs/python_config.json}"
-    local prompt="${tool}/prompts/default_prompt_python.txt"
-    shift || true
-    uv run --project "$tool" "$tool/claude_code_agent_farm.py" --path "$PWD" --config "$cfg" --prompt-file "$prompt" "$@"
+# Claude Code CLI helper (required by agent farm)
+cc() {
+    local bin="${CLAUDE_BIN:-$HOME/.local/bin/claude}"
+    ENABLE_BACKGROUND_TASKS="${ENABLE_BACKGROUND_TASKS:-1}" command "$bin" --dangerously-skip-permissions "$@"
 }
-
-# Claude Code CLI alias (required by agent farm)
-alias cc="ENABLE_BACKGROUND_TASKS=1 /home/fschulz/.bun/bin/claude --dangerously-skip-permissions"
 alias -- -='cd -'
 
 # ============================================================================
@@ -158,7 +152,18 @@ if command -v batcat &>/dev/null && ! command -v bat &>/dev/null; then
     alias bat='batcat'
 fi
 if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
-    alias fd='fdfind'
+    # Accept legacy "-n" usage by translating it to "--no-ignore".
+    fd() {
+        local args=()
+        for a in "$@"; do
+            if [[ "$a" == "-n" ]]; then
+                args+=("--no-ignore")
+            else
+                args+=("$a")
+            fi
+        done
+        command fdfind "${args[@]}"
+    }
 fi
 
 # Use bat instead of cat
