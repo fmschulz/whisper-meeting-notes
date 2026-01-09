@@ -46,7 +46,7 @@ pixi install
 
 Jupyter root for this machine (default):
 ```
-/clusterfs/jgi/scratch/science/mgs/nelli/frederik/projects
+/clusterfs/jgi/scratch/science/mgs/nelli/
 ```
 You can override per-run via `JUPYTER_ROOT=/path`.
 
