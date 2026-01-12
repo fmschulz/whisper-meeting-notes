@@ -51,6 +51,7 @@ This branch (`wsu`) represents the System76 Thelio Mega workstation running Ubun
 ### Notes
 - `setup.sh` and `install-prereqs.sh` are Arch-only; do not use them on Ubuntu.
 - GNOME is the default desktop on this machine; Hyprland configs are kept for cross-machine parity.
+- Bash alias: `co` runs `codex --dangerously-bypass-approvals-and-sandbox` (see `configs/bash/bashrc`).
 
 ### Terminal Tooling Parity (fw13 baseline)
 These are the shared terminal tools expected by the configs in this repo:

@@ -126,6 +126,7 @@ cc() {
     local bin="${CLAUDE_BIN:-$HOME/.local/bin/claude}"
     ENABLE_BACKGROUND_TASKS="${ENABLE_BACKGROUND_TASKS:-1}" command "$bin" --dangerously-skip-permissions "$@"
 }
+alias co='codex --dangerously-bypass-approvals-and-sandbox'
 alias -- -='cd -'
 
 # ============================================================================
