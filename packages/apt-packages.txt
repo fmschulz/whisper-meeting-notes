@@ -13,18 +13,24 @@ fzf
 fd-find
 bat
 btop
+duf
+hexyl
 nvtop
 ipmitool
 lm-sensors
 pciutils
 usbutils
 smartmontools
+tldr
 python3
 python3-pip
 python3-venv
+zoxide
 
 # NVIDIA stack (match installed driver series)
 # Example for 580-series:
 # nvidia-driver-580
 # nvidia-utils-580
 ubuntu-drivers-common
+
+# See docs/ubuntu-packages.md for Cargo-installed tools

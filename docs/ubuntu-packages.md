@@ -8,6 +8,7 @@ Shortlist for matching the fw13 terminal tooling on Ubuntu 22.04.
 sudo apt update
 sudo apt install -y \
   git curl wget jq ripgrep fzf fd-find bat btop gh \
+  duf hexyl tldr zoxide \
   unzip zip xz-utils bzip2 gzip \
   python3 python3-pip \
   build-essential cmake \
@@ -24,13 +25,24 @@ ln -sf "$(command -v fdfind)" ~/.local/bin/fd
 ln -sf "$(command -v batcat)" ~/.local/bin/bat
 ```
 
-## Rust-Based Tools (Cargo)
+## Modern CLI Tools Not in Apt (Cargo)
 
 ```bash
 cargo install \
-  eza zoxide starship atuin git-delta tealdeer just \
+  bottom procs dust sd ouch xh just \
+  eza starship atuin git-delta tealdeer \
   yazi-fm yazi-cli
 ```
+
+## YAML (yq)
+
+Ubuntu 22.04 doesn’t ship the mikefarah `yq` by default. Choose one:
+
+- **pipx** (lightweight):
+  ```bash
+  pipx install yq
+  ```
+- **Binary release** from upstream (preferred for full compatibility)
 
 ## GPU Driver Check
 
