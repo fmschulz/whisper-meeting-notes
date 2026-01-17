@@ -1,0 +1,14 @@
+[Unit]
+Description=Thermalright LCD Display Controller (NEXUS)
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=%h/fsws-arch-config/display-control.sh start
+ExecStop=%h/fsws-arch-config/display-control.sh stop
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
+

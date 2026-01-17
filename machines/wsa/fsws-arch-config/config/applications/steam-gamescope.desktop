@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Steam (Gamescope + Gamemode + MangoHud)
+Comment=Launch Steam wrapped by Gamescope with Gamemode and MangoHud
+Exec=/bin/bash -lc "$HOME/.local/bin/steam-gamescope || ~/.config/steam-gamescope-fallback"
+Icon=steam
+Terminal=false
+Categories=Game;Utility;
+Keywords=Steam;Games;Gamescope;Gamemode;MangoHud;
+

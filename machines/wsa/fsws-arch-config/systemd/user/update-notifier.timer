@@ -1,0 +1,11 @@
+[Unit]
+Description=Run weekly Arch update notification for user
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target
+

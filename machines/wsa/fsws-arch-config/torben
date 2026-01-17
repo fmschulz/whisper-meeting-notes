@@ -1,0 +1,8 @@
+• Same setup for torben can be done with the existing repo; no files were changed. Steps:
+
+  - Add torben to the same groups as fschulz (needed for sudo, Docker/Ollama, i2c): sudo usermod -aG wheel,docker,ollama,i2c,audio,input,video,steamshare torben then have torben log out/in.
+  - Copy the repo into torben’s home (run as root): sudo rsync -a --delete /home/fschulz/fsws-arch-config/ /home/torben/fsws-arch-config/ && sudo chown -R torben:torben /home/torben/fsws-arch-config.
+  - Switch to torben and restore configs/packages from the repo: su - torben, cd ~/fsws-arch-config, ./restore.sh (will back up any existing configs, install missing packages, and copy Hyprland/Waybar/Rofi/etc. plus wallpapers and user scripts).
+  - After restore, log into Hyprland as torben; if tweaking live, use hyprctl reload and killall waybar && waybar & to refresh.
+
+  If you want torben to also run the LLM stack, ensure Docker is running and use ./scripts/manage-llm.sh start or docker compose -f docker/llm-stack.yml up -d as torben after re-logging.

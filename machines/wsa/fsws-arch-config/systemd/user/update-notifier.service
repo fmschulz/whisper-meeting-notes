@@ -1,0 +1,16 @@
+[Unit]
+Description=Notify about Arch updates if system is stale
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+Environment=STALE_DAYS=7
+Environment=NOTIFY_MIN_INTERVAL_HOURS=12
+ExecStart=%h/.local/bin/update-notifier.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
+

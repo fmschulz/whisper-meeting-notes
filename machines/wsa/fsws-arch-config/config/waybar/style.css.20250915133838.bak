@@ -1,0 +1,202 @@
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║                     NEXUS WAYBAR - CYBERPUNK CONTROL PANEL                  ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+
+/* NEXUS Color Palette - Accent Toggle */
+@define-color neon-cyan #01cdfe;          /* bright blue */
+@define-color success-green #05ffa1;      /* bright green */
+@define-color text-primary #e0e0ff;
+@define-color text-secondary #a0a0c0;
+@define-color dark-bg rgba(13, 2, 33, 0.95);
+@define-color warning-red #ff2a6d;
+
+/* Choose your accent: set to green or blue by editing below */
+@define-color accent #05ffa1; /* bright green (default) */
+/* Alternative: @define-color accent #01cdfe;  bright blue */
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Pro", monospace;
+    font-size: 24px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.55, -0.68, 0.48, 1.68);
+}
+
+/* Main Bar - Fully Transparent */
+window#waybar {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ NEXUS LAUNCHER ━━━━━━━━━━━━━━━━━━━━━ */
+#custom-launcher {
+    background: transparent;
+    color: @accent;
+    padding: 0 8px;
+    margin: 8px 6px;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: bold;
+    border: 2px solid @accent;
+    box-shadow: none;
+    text-shadow: 0 0 6px @accent;
+}
+
+#custom-launcher:hover {
+    background: transparent;
+    box-shadow: 0 0 10px @accent;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ WORKSPACE GRID ━━━━━━━━━━━━━━━━━━━━━ */
+#workspaces {
+    background: transparent;
+    border-radius: 12px;
+    padding: 4px 8px;
+    margin: 8px 6px;
+    border: 2px solid @accent;
+    box-shadow: none;
+}
+
+#workspaces button {
+    color: @accent;
+    background: transparent;
+    padding: 8px 14px;
+    margin: 3px;
+    border-radius: 10px;
+    border: 2px solid @accent;
+    min-width: 50px;
+    font-size: 26px;
+    font-weight: 700;
+    box-shadow: none;
+    text-shadow: 0 0 6px @accent;
+}
+
+#workspaces button:hover {
+    background: transparent;
+    border-color: @accent;
+    color: @accent;
+    box-shadow: 0 0 10px @accent;
+    text-shadow: 0 0 10px @accent;
+}
+
+#workspaces button.active {
+    background: transparent;
+    border-color: @accent;
+    color: @accent;
+    box-shadow: 0 0 14px @accent;
+    font-size: 28px;
+    text-shadow: 0 0 12px @accent;
+}
+
+#workspaces button.urgent {
+    background: transparent;
+    border-color: @warning-red;
+    color: @warning-red;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ DATE MODULE ━━━━━━━━━━━━━━━━━━━━━ */
+#custom-date {
+    background: transparent;
+    color: @accent;
+    padding: 0 16px;
+    margin: 8px 6px;
+    border-radius: 12px;
+    border: 2px solid @accent;
+    box-shadow: none;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 0 0 10px @accent;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ CLOCK MODULE ━━━━━━━━━━━━━━━━━━━━━ */
+#clock {
+    background: transparent;
+    color: @accent;
+    padding: 0 16px;
+    margin: 8px 6px;
+    border-radius: 12px;
+    border: 2px solid @accent;
+    box-shadow: none;
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 0 0 10px alpha(@accent, 0.5);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ SYSTEM MONITORS ━━━━━━━━━━━━━━━━━━━━━ */
+#cpu,
+#memory,
+#disk,
+#network {
+    background: transparent;
+    color: @accent;
+    padding: 0 14px;
+    margin: 8px 4px;
+    border-radius: 12px;
+    border: 2px solid @accent;
+    box-shadow: none;
+    font-size: 24px;
+    text-shadow: 0 0 8px @accent;
+}
+
+#cpu.warning,
+#memory.warning {
+    border-color: @warning-red;
+    color: @warning-red;
+    box-shadow: 0 0 20px @warning-red;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ TRAY & POWER ━━━━━━━━━━━━━━━━━━━━━ */
+#tray {
+    background: transparent;
+    padding: 0 10px;
+    margin: 8px 6px;
+    border-radius: 12px;
+    border: 2px solid @accent;
+}
+
+#custom-power {
+    background: transparent;
+    color: @accent;
+    padding: 0 18px;
+    margin: 8px 10px;
+    border-radius: 12px;
+    font-size: 26px;
+    border: 2px solid @accent;
+    box-shadow: none;
+    font-weight: bold;
+}
+
+#custom-power:hover {
+    background: transparent;
+    box-shadow: 0 0 12px @accent;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ WEATHER MODULE ━━━━━━━━━━━━━━━━━━━━━ */
+#custom-weather {
+    background: transparent;
+    color: @accent;
+    padding: 0 14px;
+    margin: 8px 6px;
+    border-radius: 12px;
+    border: 2px solid @accent;
+    font-size: 24px;
+    text-shadow: 0 0 6px @accent;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ ANIMATIONS ━━━━━━━━━━━━━━━━━━━━━ */
+/* Note: Waybar has limited animation support - using simpler effects */
+
+/* ━━━━━━━━━━━━━━━━━━━━━ TOOLTIPS ━━━━━━━━━━━━━━━━━━━━━ */
+tooltip {
+    background: @dark-bg;
+    border: 2px solid @accent;
+    border-radius: 10px;
+    box-shadow: 0 0 20px @accent;
+    font-size: 20px;
+}
+
+tooltip label {
+    color: @text-primary;
+    text-shadow: 0 0 5px currentColor;
+}

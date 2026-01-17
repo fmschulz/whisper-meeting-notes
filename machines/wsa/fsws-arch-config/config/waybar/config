@@ -1,0 +1,263 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 83,
+    "spacing": 4,
+    "margin-top": 5,
+    "margin-left": 10,
+    "margin-right": 10,
+    "modules-left": [
+        "custom/launcher",
+        "hyprland/workspaces",
+        "custom/media",
+        "custom/cliphist",
+        "hyprland/window",
+        "custom/wallpaper"
+    ],
+    "modules-center": [
+        "wlr/taskbar",
+        "clock",
+        "custom/date",
+        "custom/weather"
+    ],
+    "modules-right": [
+        "pulseaudio",
+        "network",
+        "bluetooth",
+        "memory",
+        "cpu",
+        "custom/hyprshade",
+        "custom/hypridle",
+        "custom/updates",
+        "tray",
+        "custom/power"
+    ],
+    "wlr/taskbar": {
+        "format": "{icon}",
+        "icon-size": 18,
+        "tooltip-format": "{title}",
+        "on-click": "activate",
+        "on-click-middle": "close"
+    },
+    "hyprland/window": {
+        "max-length": 60,
+        "separate-outputs": true
+    },
+    "hyprland/workspaces": {
+        "disable-scroll": false,
+        "all-outputs": true,
+        "on-click": "activate",
+        "format": "{name}",
+        "persistent-workspaces": {
+            "*": 9
+        },
+        "on-scroll-up": "hyprctl dispatch workspace e+1",
+        "on-scroll-down": "hyprctl dispatch workspace e-1"
+    },
+    "custom/launcher": {
+        "format": "\uf135",
+        "on-click": "rofi -show drun -theme ~/.config/rofi/launchers/nexus.rasi -theme-str 'window { anchor: north west; location: north west; x-offset: 20; y-offset: 20; }'",
+        "on-click-right": "killall rofi",
+        "tooltip": false
+    },
+    "custom/wallpaper": {
+        "format": "\uf03e",
+        "on-click": "~/.config/waybar/scripts/wallpaper-cycle.sh",
+        "tooltip": true,
+        "tooltip-format": "Cycle wallpaper"
+    },
+    "clock": {
+        "format": "\udb82\udd54 {:%H:%M}  Berkeley, CA",
+        "format-alt": "{:%A, %B %d, %Y (%R)}  Berkeley",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>\n\ud83d\udccd Berkeley, California\n\ud83c\udf10 Pacific Time (PST/PDT)",
+        "calendar": {
+            "mode": "year",
+            "mode-mon-col": 3,
+            "weeks-pos": "right",
+            "on-scroll": 1,
+            "on-click-right": "mode",
+            "format": {
+                "months": "<span color='#ffead3'><b>{}</b></span>",
+                "days": "<span color='#ecc6d9'><b>{}</b></span>",
+                "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
+                "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+                "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+            }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-click-forward": "tz_up",
+            "on-click-backward": "tz_down",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
+        },
+        "interval": 1
+    },
+    "cpu": {
+        "format": "\udb80\udf5b {usage}%",
+        "tooltip": true,
+        "interval": 2,
+        "on-click": "kitty -e btop"
+    },
+    "memory": {
+        "format": " {}%",
+        "tooltip": true,
+        "tooltip-format": "Memory: {used:0.1f}G/{total:0.1f}G",
+        "interval": 2,
+        "on-click": "kitty -e btop"
+    },
+    "backlight": {
+        "format": "{icon} {percent}%",
+        "format-icons": [
+            "\udb80\udcde",
+            "\udb80\udcdf",
+            "\udb80\udce0"
+        ],
+        "on-scroll-up": "brightnessctl set 5%+",
+        "on-scroll-down": "brightnessctl set 5%-",
+        "tooltip": true,
+        "tooltip-format": "Brightness: {percent}%"
+    },
+    "battery": {
+        "states": {
+            "good": 95,
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-charging": "\udb80\udc84 {capacity}%",
+        "format-plugged": " {capacity}%",
+        "format-alt": "{icon} {time}",
+        "format-icons": [
+            "\udb80\udc7a",
+            "\udb80\udc7b",
+            "\udb80\udc7c",
+            "\udb80\udc7d",
+            "\udb80\udc7e",
+            "\udb80\udc7f",
+            "\udb80\udc80",
+            "\udb80\udc81",
+            "\udb80\udc82",
+            "\udb80\udc79"
+        ],
+        "tooltip": true,
+        "tooltip-format": "{timeTo}\n{capacity}% \u2022 {power}W"
+    },
+    "network": {
+        "format-wifi": "\udb82\udd28 {signalStrength}%",
+        "format-ethernet": "\udb80\ude00 {ipaddr}",
+        "format-linked": "\udb82\udd29 {ifname} (No IP)",
+        "format-disconnected": "\udb82\udd2d Disconnected",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}",
+        "tooltip-format": "{ifname} via {gwaddr}\n\udb80\udd43 {bandwidthUpBytes} \udb80\udd40 {bandwidthDownBytes}",
+        "on-click-right": "nm-connection-editor",
+        "interval": 2
+    },
+    "bluetooth": {
+        "format": " {status}",
+        "format-connected": " {device_alias}",
+        "format-connected-battery": " {device_alias} {device_battery_percentage}%",
+        "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
+        "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
+        "tooltip-format-enumerate-connected-battery": "{device_alias}\t{device_address}\t{device_battery_percentage}%",
+        "on-click": "blueman-manager"
+    },
+    "custom/cliphist": {
+        "format": "\uf0c5",
+        "on-click": "$HOME/.config/waybar/scripts/cliphist-menu.sh menu",
+        "on-click-right": "$HOME/.config/waybar/scripts/cliphist-menu.sh delete",
+        "on-click-middle": "$HOME/.config/waybar/scripts/cliphist-menu.sh wipe",
+        "tooltip-format": "Left: clipboard menu\nRight: delete entry\nMiddle: clear all"
+    },
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-bluetooth": "{icon} {volume}% ",
+        "format-bluetooth-muted": "\udb81\udf5f {icon}",
+        "format-muted": "\udb81\udf5f {volume}%",
+        "format-icons": {
+            "headphone": "\uf025",
+            "hands-free": "\uf130",
+            "headset": "\uf130",
+            "phone": "\uf095",
+            "portable": "\uf11b",
+            "car": "\uf1b9",
+            "default": [
+                "\uf026",
+                "\uf027",
+                "\uf028"
+            ]
+        },
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "scroll-step": 5,
+        "tooltip": true,
+        "tooltip-format": "{desc} \u2022 {volume}%"
+    },
+    "custom/media": {
+        "format": "{icon} {text}",
+        "return-type": "json",
+        "max-length": 40,
+        "format-icons": {
+            "spotify": "",
+            "default": "\udb80\udf86"
+        },
+        "escape": true,
+        "exec": "$HOME/.config/waybar/scripts/mediaplayer.py 2> /dev/null",
+        "on-click": "playerctl play-pause"
+    },
+    "custom/updates": {
+        "format": "\uf013 {text}",
+        "exec": "$HOME/.config/waybar/scripts/updates-check.sh",
+        "return-type": "json",
+        "interval": 1800,
+        "on-click": "kitty -e sudo pacman -Syu"
+    },
+    "custom/hyprshade": {
+        "format": "\ue4dc",
+        "on-click": "$HOME/.config/waybar/scripts/hyprshade-toggle.sh",
+        "tooltip": true,
+        "tooltip-format": "Toggle screen shader"
+    },
+    "custom/hypridle": {
+        "format": "\uf186",
+        "on-click": "$HOME/.config/waybar/scripts/hypridle-toggle.sh",
+        "return-type": "json",
+        "interval": 120,
+        "tooltip": true,
+        "tooltip-format": "Toggle idle inhibition"
+    },
+    "power-profiles-daemon": {
+        "format": "{icon}",
+        "tooltip-format": "Power profile: {profile}",
+        "format-icons": {
+            "default": "\uf185",
+            "performance": "\uf0e7",
+            "balanced": "\uf2c7",
+            "power-saver": "\uf06c"
+        }
+    },
+    "custom/date": {
+        "format": "\ud83d\udcc5 {}",
+        "exec": "date '+%A, %B %d, %Y'",
+        "interval": 3600,
+        "tooltip": false
+    },
+    "custom/weather": {
+        "exec": "$HOME/.config/waybar/scripts/weather.sh",
+        "return-type": "json",
+        "interval": 1800,
+        "format": "{}",
+        "tooltip": true,
+        "on-click": "xdg-open https://wttr.in/Berkeley"
+    },
+    "custom/power": {
+        "format": "\u23fb",
+        "on-click": "$HOME/.config/waybar/scripts/power-menu.sh",
+        "tooltip": false
+    },
+    "tray": {
+        "icon-size": 18,
+        "spacing": 10
+    }
+}

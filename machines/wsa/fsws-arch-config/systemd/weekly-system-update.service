@@ -1,0 +1,16 @@
+[Unit]
+Description=Weekly Arch update notification (checkupdates only)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+Nice=10
+IOSchedulingClass=idle
+Environment=STALE_DAYS=7
+ExecStart=/usr/local/sbin/update-notifier.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

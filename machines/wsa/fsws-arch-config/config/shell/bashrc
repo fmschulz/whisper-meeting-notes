@@ -1,0 +1,43 @@
+#!/bin/bash
+
+#
+# ~/.bashrc template (fsws-arch-config)
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+alias h="history"
+alias cc="claude --dangerously-skip-permissions"
+PS1='[\u@\h \W]\$ '
+export PATH="/home/fschulz/.pixi/bin:$PATH"
+
+# Created by `pipx` on 2025-09-14 20:20:23
+export PATH="$PATH:/home/fschulz/.local/bin"
+
+# NEXUS Modern CLI Setup
+if [ -f ~/.config/modern-aliases.sh ]; then
+    source ~/.config/modern-aliases.sh
+fi
+
+# Display NEXUS system info on terminal start
+if [[ $- == *i* ]] && command -v neofetch >/dev/null 2>&1; then
+    neofetch
+fi
+
+# Notify if system hasn't been updated in a week (terminal open)
+if [[ $- == *i* ]] && command -v checkupdates >/dev/null 2>&1; then
+    if [[ -x "$HOME/.local/bin/update-notifier.sh" ]]; then
+        STALE_DAYS=7 NOTIFY_MIN_INTERVAL_HOURS=12 "$HOME/.local/bin/update-notifier.sh" >/dev/null 2>&1 || true
+    fi
+fi
+
+# Initialize Starship prompt
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init bash)"
+fi
+
+# --- zoxide initialization (must be at end) ---
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init bash)"
+fi

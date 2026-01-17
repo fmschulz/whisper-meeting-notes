@@ -1,0 +1,19 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+# Wrapper script for rich-utils.py that uses the correct virtual environment
+
+VENV_PATH="$HOME/.local/venvs/nexus-tools"
+
+# Check if virtual environment exists
+if [ ! -d "$VENV_PATH" ]; then
+    echo "Setting up Python environment..."
+    python -m venv "$VENV_PATH"
+    "$VENV_PATH/bin/pip" install --upgrade pip
+    "$VENV_PATH/bin/pip" install rich textual click psutil
+fi
+
+# Run the rich-utils.py script with the virtual environment Python
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+"$VENV_PATH/bin/python" "$SCRIPT_DIR/rich-utils.py" "$@"

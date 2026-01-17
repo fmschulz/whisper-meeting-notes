@@ -1,0 +1,4 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(dirname "$(dirname "$DIR")")"
+exec python3 src/thermalright_lcd_control/main_gui.py --config resources/gui_config.yaml "$@"

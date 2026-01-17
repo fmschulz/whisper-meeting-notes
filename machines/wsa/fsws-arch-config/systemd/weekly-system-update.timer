@@ -1,0 +1,12 @@
+[Unit]
+Description=Run weekly system update
+
+[Timer]
+# Runs once a week; Persistent ensures a missed run is caught up at next boot.
+OnCalendar=weekly
+Persistent=true
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target
+

@@ -1,0 +1,266 @@
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║                     NEXUS WAYBAR - CYBERPUNK CONTROL PANEL                  ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+
+/* NEXUS Color Palette - Matching Terminal Theme */
+@define-color neon-purple #b967ff;
+@define-color neon-cyan #01cdfe;
+@define-color electric-blue #05ffa1;
+@define-color deep-purple #2d1b69;
+@define-color dark-bg rgba(13, 2, 33, 0.95);
+@define-color warning-red #ff2a6d;
+@define-color success-green #05ffa1;
+@define-color text-primary #e0e0ff;
+@define-color text-secondary #a0a0c0;
+@define-color border-glow rgba(185, 103, 255, 0.6);
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Pro", monospace;
+    font-size: 24px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.55, -0.68, 0.48, 1.68);
+}
+
+/* Main Bar - Futuristic Control Panel */
+window#waybar {
+    background: linear-gradient(135deg,
+        rgba(13, 2, 33, 0.98) 0%,
+        rgba(45, 27, 105, 0.95) 50%,
+        rgba(13, 2, 33, 0.98) 100%);
+    border: 3px solid @border-glow;
+    border-radius: 0;
+    box-shadow:
+        0 0 40px @neon-purple,
+        inset 0 0 40px rgba(185, 103, 255, 0.2),
+        0 10px 40px rgba(0, 0, 0, 0.8);
+    padding: 0;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ NEXUS LAUNCHER ━━━━━━━━━━━━━━━━━━━━━ */
+#custom-launcher {
+    background: linear-gradient(45deg, @neon-purple, @neon-cyan);
+    color: @dark-bg;
+    padding: 0 20px;
+    margin: 8px 10px;
+    border-radius: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    border: 2px solid @electric-blue;
+    box-shadow:
+        0 0 30px @neon-cyan,
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#custom-launcher:hover {
+    background: linear-gradient(45deg, @electric-blue, @neon-purple);
+    box-shadow:
+        0 0 40px @electric-blue,
+        inset 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ WORKSPACE GRID ━━━━━━━━━━━━━━━━━━━━━ */
+#workspaces {
+    background: linear-gradient(90deg,
+        rgba(45, 27, 105, 0.6) 0%,
+        rgba(13, 2, 33, 0.8) 100%);
+    border-radius: 15px;
+    padding: 5px 10px;
+    margin: 8px 5px;
+    border: 2px solid rgba(185, 103, 255, 0.3);
+    box-shadow:
+        inset 0 0 30px rgba(185, 103, 255, 0.1),
+        0 0 20px rgba(1, 205, 254, 0.2);
+}
+
+#workspaces button {
+    color: @text-secondary;
+    background: linear-gradient(135deg,
+        rgba(45, 27, 105, 0.6) 0%,
+        rgba(13, 2, 33, 0.8) 100%);
+    padding: 8px 16px;
+    margin: 3px;
+    border-radius: 10px;
+    border: 2px solid rgba(1, 205, 254, 0.3);
+    min-width: 50px;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow:
+        inset 0 0 15px rgba(13, 2, 33, 0.5),
+        0 0 10px rgba(1, 205, 254, 0.1);
+    text-shadow: 0 0 5px currentColor;
+}
+
+#workspaces button:hover {
+    background: linear-gradient(135deg,
+        rgba(1, 205, 254, 0.3) 0%,
+        rgba(185, 103, 255, 0.3) 100%);
+    border-color: @neon-cyan;
+    color: @electric-blue;
+    box-shadow:
+        0 0 20px @neon-cyan,
+        inset 0 0 20px rgba(1, 205, 254, 0.2);
+    text-shadow: 0 0 10px currentColor;
+}
+
+#workspaces button.active {
+    background: linear-gradient(45deg, @neon-purple, @neon-cyan);
+    border-color: @electric-blue;
+    color: @dark-bg;
+    box-shadow:
+        0 0 30px @electric-blue,
+        inset 0 0 25px rgba(255, 255, 255, 0.3),
+        0 0 40px @neon-cyan;
+    font-size: 32px;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    animation: pulse-active 2s infinite;
+}
+
+#workspaces button.urgent {
+    background: linear-gradient(45deg, @warning-red, #ff6ec7);
+    border-color: @warning-red;
+    color: white;
+    animation: pulse-urgent 1s infinite;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ CLOCK MODULE ━━━━━━━━━━━━━━━━━━━━━ */
+#clock {
+    background: linear-gradient(90deg,
+        rgba(45, 27, 105, 0.6) 0%,
+        rgba(185, 103, 255, 0.2) 50%,
+        rgba(45, 27, 105, 0.6) 100%);
+    color: @electric-blue;
+    padding: 0 20px;
+    margin: 8px 5px;
+    border-radius: 15px;
+    border: 2px solid rgba(5, 255, 161, 0.5);
+    box-shadow:
+        0 0 20px rgba(5, 255, 161, 0.3),
+        inset 0 0 20px rgba(185, 103, 255, 0.1);
+    font-size: 26px;
+    font-weight: bold;
+    text-shadow: 0 0 10px currentColor;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ SYSTEM MONITORS ━━━━━━━━━━━━━━━━━━━━━ */
+#cpu,
+#memory,
+#disk,
+#network {
+    background: linear-gradient(135deg,
+        rgba(13, 2, 33, 0.8) 0%,
+        rgba(45, 27, 105, 0.6) 100%);
+    color: @neon-cyan;
+    padding: 0 15px;
+    margin: 8px 3px;
+    border-radius: 12px;
+    border: 2px solid rgba(1, 205, 254, 0.3);
+    box-shadow:
+        inset 0 0 15px rgba(1, 205, 254, 0.1),
+        0 0 10px rgba(1, 205, 254, 0.2);
+    font-size: 24px;
+    text-shadow: 0 0 8px currentColor;
+}
+
+#cpu.warning,
+#memory.warning {
+    border-color: @warning-red;
+    color: @warning-red;
+    animation: pulse-warning 2s infinite;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ TRAY & POWER ━━━━━━━━━━━━━━━━━━━━━ */
+#tray {
+    background: rgba(13, 2, 33, 0.8);
+    padding: 0 10px;
+    margin: 8px 5px;
+    border-radius: 12px;
+    border: 2px solid rgba(185, 103, 255, 0.2);
+}
+
+#custom-power {
+    background: linear-gradient(45deg, @warning-red, #ff6ec7);
+    color: white;
+    padding: 0 20px;
+    margin: 8px 10px;
+    border-radius: 15px;
+    font-size: 28px;
+    border: 2px solid @warning-red;
+    box-shadow:
+        0 0 25px @warning-red,
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+    font-weight: bold;
+}
+
+#custom-power:hover {
+    background: linear-gradient(45deg, #ff6ec7, @warning-red);
+    box-shadow:
+        0 0 35px @warning-red,
+        inset 0 0 25px rgba(255, 255, 255, 0.3);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ WEATHER MODULE ━━━━━━━━━━━━━━━━━━━━━ */
+#custom-weather {
+    background: linear-gradient(135deg,
+        rgba(1, 205, 254, 0.2) 0%,
+        rgba(45, 27, 105, 0.6) 100%);
+    color: @text-primary;
+    padding: 0 15px;
+    margin: 8px 5px;
+    border-radius: 12px;
+    border: 2px solid rgba(1, 205, 254, 0.3);
+    font-size: 24px;
+    text-shadow: 0 0 5px currentColor;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ ANIMATIONS ━━━━━━━━━━━━━━━━━━━━━ */
+@keyframes pulse-active {
+    0%, 100% {
+        box-shadow:
+            0 0 30px @electric-blue,
+            inset 0 0 25px rgba(255, 255, 255, 0.3),
+            0 0 40px @neon-cyan;
+    }
+    50% {
+        box-shadow:
+            0 0 50px @electric-blue,
+            inset 0 0 35px rgba(255, 255, 255, 0.4),
+            0 0 60px @neon-cyan;
+    }
+}
+
+@keyframes pulse-warning {
+    0%, 100% {
+        border-color: @warning-red;
+        box-shadow: 0 0 20px @warning-red;
+    }
+    50% {
+        border-color: #ff6ec7;
+        box-shadow: 0 0 30px #ff6ec7;
+    }
+}
+
+@keyframes pulse-urgent {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 25px @warning-red;
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 35px @warning-red;
+    }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ TOOLTIPS ━━━━━━━━━━━━━━━━━━━━━ */
+tooltip {
+    background: @dark-bg;
+    border: 2px solid @neon-purple;
+    border-radius: 10px;
+    box-shadow: 0 0 30px @neon-purple;
+    font-size: 20px;
+}
+
+tooltip label {
+    color: @text-primary;
+    text-shadow: 0 0 5px currentColor;
+}

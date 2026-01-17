@@ -1,0 +1,334 @@
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║                        NEXUS Waybar - Cyberpunk Theme                       ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+
+/* Color Variables */
+@define-color neon-purple #b967ff;
+@define-color neon-cyan #01cdfe;
+@define-color electric-blue #05ffa1;
+@define-color deep-purple #2d1b69;
+@define-color dark-bg rgba(13, 2, 33, 0.85);
+@define-color warning-red #ff2a6d;
+@define-color success-green #05ffa1;
+@define-color text-primary #e0e0ff;
+@define-color text-secondary #a0a0c0;
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Pro", Roboto, sans-serif;
+    font-size: 26px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.55, -0.68, 0.48, 1.68);
+    min-height: 0;
+}
+
+window#waybar {
+    background: @dark-bg;
+    border: 2px solid alpha(@neon-purple, 0.3);
+    border-radius: 15px;
+    box-shadow:
+        0 0 20px alpha(@neon-purple, 0.4),
+        inset 0 0 20px alpha(@deep-purple, 0.3);
+    padding: 0;
+}
+
+window#waybar.hidden {
+    opacity: 0.2;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ Workspaces ━━━━━━━━━━━━━━━━━━━━━ */
+#workspaces {
+    background: linear-gradient(90deg, alpha(@deep-purple, 0.3), transparent);
+    border-radius: 12px;
+    padding: 0 10px;
+    margin: 5px 0 5px 5px;
+}
+
+#workspaces button {
+    color: @text-secondary;
+    background: rgba(45, 27, 105, 0.2);
+    padding: 12px 24px;
+    margin: 4px 6px;
+    border-radius: 12px;
+    border: 2px solid rgba(185, 103, 255, 0.2);
+    min-width: 70px;
+    font-size: 36px;
+}
+
+#workspaces button:hover {
+    background: alpha(@neon-cyan, 0.2);
+    border-color: alpha(@neon-cyan, 0.5);
+    color: @neon-cyan;
+    box-shadow: 0 0 10px alpha(@neon-cyan, 0.5);
+}
+
+#workspaces button.active {
+    background: linear-gradient(45deg, @neon-purple, @neon-cyan);
+    border-color: @electric-blue;
+    color: @dark-bg;
+    box-shadow:
+        0 0 30px @neon-cyan,
+        inset 0 0 20px alpha(@electric-blue, 0.5);
+    font-weight: bold;
+    font-size: 40px;
+}
+
+#workspaces button.urgent {
+    background: alpha(@warning-red, 0.3);
+    border-color: @warning-red;
+    color: @warning-red;
+    animation: pulse-urgent 1s infinite;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ Clock with Calendar ━━━━━━━━━━━━━━━━━━━━━ */
+#clock {
+    background: linear-gradient(90deg, alpha(@deep-purple, 0.2), alpha(@neon-purple, 0.2), alpha(@deep-purple, 0.2));
+    color: @text-primary;
+    padding: 0 15px;
+    border-radius: 12px;
+    border: 1px solid alpha(@neon-purple, 0.3);
+    box-shadow:
+        0 0 10px alpha(@neon-purple, 0.3),
+        inset 0 0 10px alpha(@deep-purple, 0.2);
+}
+
+#clock:hover {
+    background: linear-gradient(90deg, alpha(@neon-purple, 0.3), alpha(@electric-blue, 0.3), alpha(@neon-purple, 0.3));
+    box-shadow: 0 0 20px alpha(@electric-blue, 0.5);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ System Modules ━━━━━━━━━━━━━━━━━━━━━ */
+#cpu,
+#memory,
+#disk,
+#temperature,
+#backlight,
+#battery,
+#network,
+#bluetooth,
+#pulseaudio,
+#custom-media,
+#custom-weather,
+#tray {
+    background: alpha(@deep-purple, 0.2);
+    color: @text-primary;
+    padding: 0 12px;
+    margin: 5px 3px;
+    border-radius: 10px;
+    border: 1px solid alpha(@neon-purple, 0.2);
+}
+
+/* CPU Module */
+#cpu {
+    color: @neon-purple;
+    border-color: alpha(@neon-purple, 0.3);
+}
+
+#cpu:hover {
+    background: alpha(@neon-purple, 0.2);
+    box-shadow: 0 0 10px alpha(@neon-purple, 0.5);
+}
+
+/* Memory Module */
+#memory {
+    color: @neon-cyan;
+    border-color: alpha(@neon-cyan, 0.3);
+}
+
+#memory:hover {
+    background: alpha(@neon-cyan, 0.2);
+    box-shadow: 0 0 10px alpha(@neon-cyan, 0.5);
+}
+
+/* Network Module */
+#network {
+    color: @electric-blue;
+    border-color: alpha(@electric-blue, 0.3);
+}
+
+#network.disconnected {
+    color: @warning-red;
+    border-color: alpha(@warning-red, 0.3);
+}
+
+#network:hover {
+    background: alpha(@electric-blue, 0.2);
+    box-shadow: 0 0 10px alpha(@electric-blue, 0.5);
+}
+
+/* Bluetooth Module */
+#bluetooth {
+    color: #00b0ff;
+    border-color: alpha(#00b0ff, 0.3);
+}
+
+#bluetooth.connected {
+    color: @electric-blue;
+    background: alpha(@electric-blue, 0.15);
+}
+
+#bluetooth:hover {
+    background: alpha(#00b0ff, 0.2);
+    box-shadow: 0 0 10px alpha(#00b0ff, 0.5);
+}
+
+/* Audio Module */
+#pulseaudio {
+    color: #ff6ec7;
+    border-color: alpha(#ff6ec7, 0.3);
+}
+
+#pulseaudio.muted {
+    color: @text-secondary;
+    background: alpha(@deep-purple, 0.3);
+}
+
+#pulseaudio:hover {
+    background: alpha(#ff6ec7, 0.2);
+    box-shadow: 0 0 10px alpha(#ff6ec7, 0.5);
+}
+
+/* Battery Module */
+#battery {
+    color: @success-green;
+    border-color: alpha(@success-green, 0.3);
+}
+
+#battery.charging,
+#battery.plugged {
+    color: @electric-blue;
+    background: alpha(@electric-blue, 0.15);
+    animation: pulse-charging 2s infinite;
+}
+
+#battery.warning:not(.charging) {
+    color: #ffb86c;
+    background: alpha(#ffb86c, 0.2);
+    border-color: #ffb86c;
+}
+
+#battery.critical:not(.charging) {
+    color: @warning-red;
+    background: alpha(@warning-red, 0.2);
+    border-color: @warning-red;
+    animation: pulse-critical 1s infinite;
+}
+
+/* Backlight Module */
+#backlight {
+    color: #f1fa8c;
+    border-color: alpha(#f1fa8c, 0.3);
+}
+
+#backlight:hover {
+    background: alpha(#f1fa8c, 0.2);
+    box-shadow: 0 0 10px alpha(#f1fa8c, 0.5);
+}
+
+/* Custom Modules */
+#custom-launcher {
+    background: linear-gradient(45deg, @neon-purple, @neon-cyan);
+    color: @dark-bg;
+    padding: 0 15px;
+    margin-left: 10px;
+    margin-right: 5px;
+    border-radius: 10px;
+    font-size: 18px;
+    box-shadow: 0 0 15px alpha(@neon-purple, 0.5);
+}
+
+#custom-launcher:hover {
+    background: linear-gradient(45deg, @neon-cyan, @electric-blue);
+    box-shadow: 0 0 20px alpha(@electric-blue, 0.7);
+    /* transform not supported in Waybar CSS */
+}
+
+#custom-power {
+    background: linear-gradient(45deg, @warning-red, #ff6ec7);
+    color: @dark-bg;
+    padding: 0 12px;
+    margin-right: 10px;
+    border-radius: 10px;
+    font-size: 15px;
+    box-shadow: 0 0 15px alpha(@warning-red, 0.5);
+}
+
+#custom-power:hover {
+    background: linear-gradient(45deg, #ff6ec7, @warning-red);
+    box-shadow: 0 0 20px alpha(@warning-red, 0.7);
+    /* transform: scale(1.1); - not supported in Waybar CSS */
+}
+
+#custom-media {
+    background: linear-gradient(90deg, alpha(@neon-purple, 0.2), alpha(@neon-cyan, 0.2));
+    color: @text-primary;
+    min-width: 100px;
+    /* max-width: 250px; - not supported in Waybar CSS */
+}
+
+#custom-media.custom-spotify {
+    color: #1db954;
+    background: alpha(#1db954, 0.15);
+}
+
+#custom-weather {
+    color: @neon-cyan;
+    min-width: 50px;
+}
+
+/* System Tray */
+#tray {
+    background: alpha(@deep-purple, 0.2);
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+    background-color: alpha(@warning-red, 0.2);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━ Animations ━━━━━━━━━━━━━━━━━━━━━ */
+/* Note: Waybar has limited support for animations - commenting out for stability */
+/*
+@keyframes pulse-urgent {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(255, 42, 109, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255, 42, 109, 0.8);
+    }
+}
+
+@keyframes pulse-charging {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(5, 255, 161, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(5, 255, 161, 0.8);
+    }
+}
+
+@keyframes pulse-critical {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(255, 42, 109, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255, 42, 109, 0.8);
+    }
+}
+*/
+
+/* ━━━━━━━━━━━━━━━━━━━━━ Tooltip Styling ━━━━━━━━━━━━━━━━━━━━━ */
+tooltip {
+    background: @dark-bg;
+    border: 2px solid @neon-purple;
+    border-radius: 10px;
+    box-shadow: 0 0 20px alpha(@neon-purple, 0.6);
+}
+
+tooltip label {
+    color: @text-primary;
+    padding: 5px;
+}

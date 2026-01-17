@@ -1,0 +1,14 @@
+[Unit]
+Description=Force static orange RGB on login
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/bin/sleep 5
+ExecStart=%h/.local/bin/set-orange-rgb.sh ff8800
+RemainAfterExit=no
+
+[Install]
+WantedBy=default.target
+
